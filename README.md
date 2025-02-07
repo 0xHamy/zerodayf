@@ -15,6 +15,15 @@ Zerodayf was created by a vulnerability researcher to make the process of 0day h
 _**Pelase note Zerodayf is still in beta testing mode.**_
 
 
+## Core Workflow
+1. **Setup & Integration**: Configure Zerodayf’s proxy to intercept web traffic.
+2. **Code Access**: Grant read-level access to the source code repository.
+3. **Route Navigation**: Browse through endpoints like `/admin/dashboard`, `/posts/delete/1`, or `/login?redirect=/dashboard` to generate traffic.
+4. **Code Mapping**: Zerodayf links accessed routes to backend components, including server-side code and template files.
+5. **API Analysis**: Detects and maps client-side API calls (e.g., `fetch('/api/user')`, `Ajax.post('/api/delete-post')`) to backend handlers.
+6. **AI Vulnerability scan**: Sends mapped code to an AI model for security analysis.
+
+
 ## 💡 Tutorial
 Please watch the following demo to understand usage:
 ![Demo](./app/docs/zerodayf-demo.gif)
