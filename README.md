@@ -28,6 +28,7 @@ Please watch the following demo to understand usage:
 6. Ability to analyse a select number of code files of your choice
 7. Ability to view running, completed & failed scans 
 8. All scans are saved in the database so you can retain past progress
+9. Map Ajax/Fetch API calls in templates to backend API code 
 
 ## 🛠️ Installation with Docker
 Deploying Zerodayf via Docker container represents the most efficient implementation method, offering significant advantages over local installation.
