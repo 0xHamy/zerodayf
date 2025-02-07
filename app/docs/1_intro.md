@@ -21,6 +21,7 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 8. All scans are saved in the database so you can retain past progress
 
 
+
 ## Limitions
 1. At the moment only web apps developed with Flask is supported
 2. You can only add HuggingFace and OpenAI APIs
