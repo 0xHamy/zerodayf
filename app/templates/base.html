@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Zerodayf</title>
+    <!-- Author -->
+    <meta name="author" content="0xHamy">
+    <!-- Icon -->
+    <link rel="icon" href="{{ static_url(request, 'image/nuclear.png') }}" type="image/png">
+    <!-- Description -->
+    <meta name="description" content="Zerodayf - A web application for managing security scans and deep analysis.">
+
+    <!-- Semantic UI CSS CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+        integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- jQuery CDN -->
+    <script src="{{ static_url(request, 'js/jquery-3.6.0.min.js') }}"></script>
+    <!-- Semantic UI JS CDN -->
+    <script src="{{ static_url(request, 'js/semantic.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ static_url(request, 'css/base.css') }}">
+    <!-- Xterm CSS -->
+    <link rel="stylesheet" href="{{ static_url(request, 'css/xterm.min.css') }}">
+    <!-- Xterm.js from CDN -->
+    <script src="{{ static_url(request, 'js/xterm.min.js') }}"></script>
+    <!-- Showdown.js -->
+    <script src="{{ static_url(request, 'js/showdown.min.js') }}"></script>
+
+    <!-- Custom CSS -->
+    {% block css %}
+    {% endblock %}
+</head>
+
+<body>
+    <!-- Navbar -->
+    <div class="ui attached stackable menu">
+        <div class="ui container">
+            <!-- Dashboard page -->
+            <a class="item {{ 'active' if request.url.path == '/' }}" href="/">Dashboard</a>
+
+            <!-- Proxy Log -->
+            <div
+                class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/proxy-log', '/route-log'] }}">
+                Proxy <i class="dropdown icon"></i>
+                <div class="menu">
+                    <a class="item {{ 'active' if request.url.path == '/proxy-log' }}" href="/proxy-log">Proxy Log</a>
+                    <a class="item {{ 'active' if request.url.path == '/route-log' }}" href="/route-log">Route Log</a>
+                </div>
+            </div>
+
+            <!-- Scans Dropdown -->
+            <div class="ui simple dropdown item 
+            {% if request.url.path.startswith('/scans') or request.url.path.startswith('/scan-templates') %} highlighted {% endif %}">
+                Scans <i class="dropdown icon"></i>
+                <div class="menu">
+                    <a class="item {% if request.url.path == '/scans' %}active{% endif %}" href="/scans">Scans</a>
+                    <a class="item {% if request.url.path == '/scan-templates' %}active{% endif %}"
+                        href="/scan-templates">Scan Templates</a>
+                </div>
+            </div>
+
+
+
+            <!-- Manage API -->
+            <a class="item {{ 'active' if request.url.path == '/manage-api' }}" href="/manage-api">Manage API</a>
+
+            <!-- Usage/tutorial page -->
+            <a class="item {{ 'active' if request.url.path == '/usage' }}" href="/usage">Usage</a>
+
+        </div>
+    </div>
+
+    <!-- Content Block -->
+    <div class="ui main fluid container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Initialize Semantic UI's dropdown -->
+    <script>
+        $(document).ready(function() {
+            $('.ui.dropdown').dropdown();
+        });
+    </script>
+</body>
+
+</html>

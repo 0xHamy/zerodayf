@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block css %}
+
+
+<style>
+    @font-face {
+        font-family: 'Advent Pro';
+        src: url('/static/fonts/advent/AdventPro-Variable.ttf') format('truetype');
+        font-weight: 100 900;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Monda';
+        src: url('/static/fonts/monda/Monda.ttf') format('truetype');
+        font-weight: 100 900;
+        font-style: normal;
+    }
+
+    /* Keep original navbar spacing */
+    .ui.main.fluid.container {
+        margin: 0 !important;
+        padding: 2rem !important;
+        width: 100% !important;
+        height: 100% !important;
+        position: relative;
+        overflow: hidden;
+        background: transparent !important;
+        border-radius: 10px;
+    }
+
+    /* Video contained within the main container */
+    .container-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    /* Semi-transparent overlay for container */
+    .container-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1;
+    }
+
+    /* Content positioning */
+    .ui.container.content {
+        position: relative;
+        z-index: 2;
+        color: red;
+        height: 100%;
+        text-align: center;
+    }
+
+    .ui.header {
+        color: #fff;
+        font-weight: 700;
+        font-family: "Advent Pro";
+        font-size: 38pt !important;
+    }
+
+    #motto {
+        color: #f82164;
+        font-family: "Monda";
+        font-size: 20pt;
+    }
+
+    /* Centering the image and ensuring it remains round */
+    .image-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        overflow: hidden;
+        position: relative;
+        width: auto;
+        max-width: 300px;
+        aspect-ratio: 1 / 1;
+        margin: 0 auto;
+    }
+
+    /* The rotating image */
+    .rotating-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        transition: transform 2s ease-in-out, opacity 1s ease-in-out;
+    }
+
+
+    #github {
+        margin-top: 7%;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="ui.main.fluid.container">
+    <!-- Video background inside container -->
+    <video autoplay muted loop class="container-video">
+        <source src="{{ static_url(request, 'video/jinx.mp4') }}" type="video/mp4">
+    </video>
+
+    <div class="container-overlay"></div>
+
+    <!-- Semantic UI content -->
+    <div class="ui container content">
+        <div class="ui padded segment" style="background: rgba(0,0,0,0.2);">
+            <h1 class="ui header">
+                Welcome to <span style="color:#e2479f;">zerodayf</span> dashboard
+            </h1>
+            <div class="ui divider"></div>
+            <p id="motto">Making 0day hunting child's play since zero days.</p>
+
+            <div class="image-container">
+                <img id="image" class="rotating-image" src="../static/image/nuclear.png" alt="Image 1">
+            </div>
+
+            <button class="huge ui inverted olive basic button" id="github"
+                onclick="window.open('https://github.com/0xHamy/zerodayf', '_blank')">
+                Visit Github
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        let images = [
+            "../static/image/nuclear.png",
+            "../static/image/avatar.png"
+        ];
+        let currentIndex = 0;
+        let rotationDirection = -1;
+
+        function rotateImage() {
+            let nextIndex = (currentIndex + 1) % images.length;
+            let rotationAngle = rotationDirection * 360;
+
+            $("#image").css({
+                "transform": `rotate(${rotationAngle}deg)`,
+                "transition": "transform 2s ease-in-out, opacity 1s ease-in-out"
+            });
+
+            setTimeout(() => {
+                $("#image").css("opacity", "0");
+
+                setTimeout(() => {
+                    $("#image").attr("src", images[nextIndex]);
+                    $("#image").css({
+                        "transform": "rotate(0deg)",
+                        "opacity": "1"
+                    });
+
+                    rotationDirection *= -1;
+                    currentIndex = nextIndex;
+                }, 1000);
+            }, 2000);
+
+            setTimeout(rotateImage, 3500);
+        }
+        rotateImage();
+    });
+</script>
+{% endblock %}

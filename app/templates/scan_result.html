@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Scan: {{ scan_name }}{% endblock %}
+
+{% block content %}
+<h1 id="scanNameHeader">Loading scan...</h1>
+
+<!-- The HTML (already converted server-side) goes here -->
+<div id="scanResultOutput" style="border: 1px solid #ddd; padding: 1em;"></div>
+
+<br><br>
+<button class="ui green button" id="downloadPDFbtn" style="display:none;">Download PDF Report</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const scanName = `{{ scan_name }}`;
+  loadScanData(scanName);
+});
+
+// AJAX fetch from the route that returns JSON
+async function loadScanData(scanName) {
+  const endpoint = `/scan/_scan-result/${scanName}`;
+
+  document.getElementById('scanResultOutput').innerHTML = '<div class="ui active inline loader"></div>';
+
+  try {
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || response.statusText);
+    }
+    const scan = await response.json();
+    document.getElementById('scanNameHeader').textContent = `Scan result for: ${scan.scan_name}`;
+    document.getElementById('scanResultOutput').innerHTML = scan.scan_result;
+
+    // Show the PDF download button
+    const downloadBtn = document.getElementById('downloadPDFbtn');
+    downloadBtn.style.display = 'inline-block';
+    downloadBtn.onclick = function() {
+      downloadPDF(scan.scan_name);
+    };
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById('scanResultOutput').innerHTML = `
+      <div class="ui negative message">
+        <div class="header">Failed to load scan result.</div>
+        <p>${error.message}</p>
+      </div>`;
+  }
+}
+
+// PDF download logic
+function downloadPDF(scanName) {
+  const sanitized = scanName.replace(/[^a-z0-9_\-]/gi, '_');
+
+  const $loading = $('<div>').text('Generating PDF...').addClass('pdf-loading');
+  $('body').append($loading);
+
+  $.ajax({
+    url: `/scan/download-report/${encodeURIComponent(scanName)}`,
+    method: 'GET',
+    xhrFields: { responseType: 'blob' },
+    success: function(data) {
+      const url = window.URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${sanitized}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+    error: function(xhr) {
+      let errorMsg = 'Failed to generate PDF';
+      try {
+        const response = JSON.parse(xhr.responseText);
+        errorMsg = response.message || errorMsg;
+      } catch(e) {}
+      alert(`Error: ${errorMsg}`);
+    },
+    complete: function() {
+      $loading.remove();
+    }
+  });
+}
+</script>
+{% endblock %}

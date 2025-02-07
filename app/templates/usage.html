@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Zerodayf Usage{% endblock %}
+
+{% block css %}
+<style>
+    .toc {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .content-area {
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ui container">
+    <h1 class="ui header page_header">Zerodayf Usage</h1>
+
+    <div class="ui centered grid">
+        <div class="sixteen wide computer twelve wide tablet sixteen wide mobile column">
+            <div class="ui segment" style="background-color: transparent;">
+                <div class="ui two column stackable grid">
+                    <!-- Table of Contents -->
+                    <div class="four wide column toc">
+                        <div class="ui vertical menu" id="toc-menu">
+                            <!-- Dynamically filled with JS -->
+                        </div>
+                    </div>
+
+                    <!-- Content Area -->
+                    <div class="twelve wide column content-area">
+                        <div class="ui segment" id="content-segment" style="background-color: #f8f8f8;">
+                            <p>Select a topic from the table of contents.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Initialize Showdown converter with options
+        var converter = new showdown.Converter({
+            simplifiedAutoLink: true,
+            strikethrough: true,
+            tables: true,
+            tasklists: true,
+            ghCodeBlocks: true,
+            fencedCodeBlocks: true,
+            smoothLivePreview: true,
+            smartIndentationFix: true,
+            simpleLineBreaks: true,
+            requireSpaceBeforeHeadingText: true,
+            ghCompatibleHeaderId: true,
+            openLinksInNewWindow: true,
+            parseImgDimensions: true,
+            headerLevelStart: 1,
+            disableForced4SpacesIndentedSublists: true
+        });
+
+        // Set options for horizontal rules
+        converter.setOption('omitExtraWLInCodeBlocks', true);
+        converter.setOption('literalMidWordUnderscores', true);
+        converter.setOption('noHeaderId', true);
+        converter.setOption('ghCompatibleHeaderId', true);
+
+        // Fetch the list of docs from the backend
+        $.ajax({
+            url: '/usage/docs',
+            method: 'GET',
+            success: function(data) {
+                var docs = data.docs;
+                var menu = $('#toc-menu');
+                if (docs.length === 0) {
+                    menu.append('<div class="item">No documentation available.</div>');
+                    return;
+                }
+                docs.forEach(function(doc, index) {
+                    var activeClass = index === 0 ? 'active' : '';
+                    var item =
+                        `<a class="item ${activeClass}" data-doc="${doc.filename}">${doc.title}</a>`;
+                    menu.append(item);
+                });
+
+                // Load the first document by default
+                loadDoc(docs[0].filename);
+            },
+            error: function(err) {
+                $('#content-segment').html('<p>Error loading documentation.</p>');
+            }
+        });
+
+        // Handle menu item click
+        $('#toc-menu').on('click', '.item', function() {
+            $('#toc-menu .item').removeClass('active');
+            $(this).addClass('active');
+            var docName = $(this).data('doc');
+            loadDoc(docName);
+        });
+
+        // Function to load and display a document
+        function loadDoc(docName) {
+            $.ajax({
+                url: `/usage/docs/${docName}`,
+                method: 'GET',
+                beforeSend: function() {
+                    $('#content-segment').html('<div class="ui active inline loader"></div>');
+                },
+                success: function(data) {
+                    // Pre-process content to ensure horizontal rules are properly formatted
+                    var processedContent = data.content.replace(/^---$/gm, '\n---\n');
+                    var html = converter.makeHtml(processedContent);
+                    $('#content-segment').html(html);
+                },
+                error: function(err) {
+                    $('#content-segment').html('<p>Error loading the document.</p>');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,158 @@
+/* Ubuntu Font Family Import */
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: local('Ubuntu'),
+         url('../fonts/ubuntu/Ubuntu-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+/* ======================
+   Base Styles 
+======================= */
+body {
+    background-color: #cbc8cf;
+    margin: 0;
+    font-family: "Ubuntu";
+}
+
+/* Custom scroll bar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #ca3c8d;
+    border-radius: 10px;
+    border: 3px solid #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+/* ======================
+   Navigation 
+======================= */
+.ui.attached.menu {
+    background-color: #ba6cc4;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 0;
+    
+    .item {
+        color: #000 !important;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+
+        &:hover, &.highlighted, &.active {
+            background-color: #8b4a94;
+            color: #fff !important;
+        }
+    }
+
+    .dropdown {
+        .menu {
+            background-color: #ce75d9 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            
+            /* New dropdown item hover style */
+            .item:hover {
+                background-color: #b45cbf !important;
+                transition: background-color 0.3s ease;
+            }
+        }
+
+        /* Dropdown visibility control */
+        &.active .menu { display: none !important; }
+        &.visible .menu { display: block !important; }
+    }
+}
+
+/* Container override */
+.ui.container {
+    padding: 0 !important;
+}
+
+.ui.main.fluid.container {
+    background-color: #ebe4f1;
+    padding: 2rem !important;
+    border-radius: 10px;
+    margin-left: 2rem !important;
+    margin-right: 2rem !important;
+    margin-top: 3rem !important;
+    width: calc(100% - 4rem) !important;
+    box-sizing: border-box;
+}
+
+
+/* Page header for all templates */
+.ui.header.page_header {
+    color: #000;
+    font-weight: bold;
+    font-family: 'Ubuntu', sans-serif;
+}
+

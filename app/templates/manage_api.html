@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}API Settings{% endblock %}
+
+{% block content %}
+<h1 class="ui header page_header">API Settings</h1>
+<div class="ui segment">
+    <div class="ui form" id="api-form">
+        <div class="three fields">
+            <div class="field">
+                <label>API Name</label>
+                <input type="text" name="name">
+            </div>
+            <div class="field">
+                <label>API Provider</label>
+                <div class="ui selection dropdown" id="provider-dropdown">
+                    <input type="hidden" name="provider">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Select Provider</div>
+                    <div class="menu">
+                        <div class="item" data-value="huggingface">HuggingFace</div>
+                        <div class="item" data-value="openai">OpenAI</div>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label>Data Model</label>
+                <input type="text" name="dataModel">
+            </div>
+            <div class="field">
+                <label>API Token</label>
+                <input type="text" name="token">
+            </div>
+        </div>
+        <div class="ui buttons">
+            <button class="ui blue button" id="check-btn">Check API</button>
+            <button class="ui green button" id="save-btn" style="display: none">Save API</button>
+        </div>
+        <div id="message-container" class="ui message hidden" style="margin-top: 1rem;"></div>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <div class="ui form">
+        <div class="inline field">
+            <label>Activate API by Name:</label>
+            <input type="text" id="activate-api-name">
+            <button class="ui blue button" id="activate-btn">Activate</button>
+        </div>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <h3 class="ui header">Manage APIs</h3>
+    <table class="ui celled table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Token</th>
+                <th>Data Model</th>
+                <th>Provider</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="api-table">
+            <tr>
+                <td colspan="5" class="center aligned">No APIs added yet</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirm-modal" class="ui modal">
+    <div class="header">Confirm Deletion</div>
+    <div class="content">
+        <p>Are you sure you want to delete this API?</p>
+    </div>
+    <div class="actions">
+        <div class="ui cancel button">Cancel</div>
+        <div class="ui red approve button">Delete</div>
+    </div>
+</div>
+
+
+<script>
+    window.deleteAPI = (apiId) => {
+        $('#delete-confirm-modal')
+            .data('apiId', apiId)
+            .modal('show');
+    };
+
+    // Handle the approve (Delete) action
+    $('#delete-confirm-modal .approve.button').on('click', async function() {
+        const apiId = $('#delete-confirm-modal').data('apiId');
+
+        try {
+            const response = await fetch(`/api/delete-api/${apiId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                await loadAPIs();
+                showMessage('API deleted successfully', 'positive');
+            } else {
+                const error = await response.json();
+                showMessage(error.message, 'negative');
+            }
+        } catch (error) {
+            showMessage('Error deleting API', 'negative');
+        } finally {
+            $('#delete-confirm-modal').modal('hide');
+        }
+    });
+
+    // Dropdown for choosing API provider
+    $(document).ready(function() {
+        $('#provider-dropdown').dropdown();
+        loadAPIs();
+
+        $('#check-btn').click(async function() {
+            const {
+                name,
+                provider,
+                token,
+                dataModel
+            } = getFormData();
+            if (!validateForm()) return;
+            try {
+                const response = await fetch('/api/check-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        provider,
+                        token,
+                        model: dataModel
+                    })
+                });
+                const result = await response.json();
+                showMessage(result.message, result.valid ? 'positive' : 'negative');
+                if (result.valid) {
+                    $('#check-btn').hide();
+                    $('#save-btn').show();
+                }
+            } catch (error) {
+                showMessage('Validation service error', 'negative');
+            }
+        });
+
+        $('#save-btn').click(async () => {
+            const {
+                name,
+                provider,
+                token,
+                dataModel
+            } = getFormData();
+            try {
+                const response = await fetch('/api/save-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        provider,
+                        token,
+                        model: dataModel
+                    })
+                });
+                if (response.ok) {
+                    resetForm();
+                    await loadAPIs();
+                    showMessage('API saved successfully', 'positive');
+                    $('#save-btn').hide();
+                    $('#check-btn').show();
+                } else {
+                    const error = await response.json();
+                    showMessage(error.message, 'negative');
+                }
+            } catch (error) {
+                showMessage('Error saving API', 'negative');
+            }
+        });
+
+        $('#activate-btn').click(handleActivation);
+    });
+
+    async function handleActivation() {
+        const apiName = $('#activate-api-name').val().trim();
+        if (!apiName) {
+            showMessage('Please enter an API name', 'negative');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/toggle-api/${encodeURIComponent(apiName)}`, {
+                method: 'POST'
+            });
+            const result = await response.json();
+            if (response.ok) {
+                await loadAPIs();
+                showMessage(result.message, 'positive');
+                $('#activate-api-name').val('');
+            } else {
+                showMessage(result.detail || 'Activation failed', 'negative');
+            }
+        } catch (error) {
+            showMessage('Error activating API', 'negative');
+        }
+    }
+
+    async function loadAPIs() {
+        try {
+            const response = await fetch('/api/get-apis');
+            const apis = await response.json();
+
+            const rows = apis.map(api => {
+                const masked = '*'.repeat(api.token.length);
+                return `
+                <tr>
+                    <td>${api.name}</td>
+                    <td>
+                        <span 
+                            id="token-span-${api.id}"
+                            data-is-masked="true"
+                        >
+                            ${masked}
+                        </span>
+                        <i 
+                            class="eye icon"
+                            style="cursor: pointer; margin-left:5px;"
+                            onclick="toggleToken(${api.id}, '${api.token}')"
+                        ></i>
+                    </td>
+                    <td>${api.model || ''}</td>
+                    <td>${api.provider}</td>
+                    <td>
+                        ${api.is_active
+                            ? '<i class="green check circle icon"></i> Active'
+                            : '<i class="grey times circle icon"></i> Inactive'
+                        }
+                    </td>
+                    <td>
+                        <button class="ui small red button" onclick="deleteAPI(${api.id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+
+            $('#api-table').html(
+                rows.length ?
+                rows :
+                '<tr><td colspan="6" class="center aligned">No APIs found</td></tr>'
+            );
+        } catch (error) {
+            showMessage('Error loading APIs', 'negative');
+        }
+    }
+
+
+
+    function toggleToken(apiId, realToken) {
+        const span = document.getElementById(`token-span-${apiId}`);
+        const isMasked = (span.dataset.isMasked === 'true');
+
+        if (isMasked) {
+            span.textContent = realToken;
+            span.dataset.isMasked = 'false';
+        } else {
+            span.textContent = '*'.repeat(realToken.length);
+            span.dataset.isMasked = 'true';
+        }
+    }
+
+
+    function getFormData() {
+        return {
+            name: $('input[name="name"]').val(),
+            provider: $('input[name="provider"]').val(),
+            token: $('input[name="token"]').val(),
+            dataModel: $('input[name="dataModel"]').val()
+        };
+    }
+
+    function validateForm() {
+        const {
+            name,
+            provider,
+            token
+        } = getFormData();
+        if (!name || !provider || !token) {
+            showMessage('All fields are required', 'negative');
+            return false;
+        }
+        return true;
+    }
+
+    function resetForm() {
+        $('input[name="name"]').val('');
+        $('input[name="token"]').val('');
+        $('input[name="dataModel"]').val('');
+        $('#provider-dropdown').dropdown('clear');
+    }
+
+    function showMessage(message, type) {
+        const container = $('#message-container');
+        container.removeClass('positive negative hidden')
+            .addClass(`${type} visible`)
+            .html(message);
+        setTimeout(() => {
+            container.addClass('hidden').removeClass('visible positive negative');
+        }, 5000);
+    }
+</script>
+
+<style>
+    .hidden {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    .visible {
+        display: block;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .ui.table td.center.aligned {
+        text-align: center;
+    }
+
+    #message-container {
+        margin-top: 1rem;
+    }
+
+    .actions-column button {
+        margin: 2px;
+    }
+
+    i.green.check.circle.icon {
+        color: #21ba45 !important;
+    }
+
+    i.grey.times.circle.icon {
+        color: #767676 !important;
+    }
+</style>
+{% endblock %}

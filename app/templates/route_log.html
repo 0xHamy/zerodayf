@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block title %}Route Log{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ static_url(request, 'css/route_log.css') }}">
+{% endblock %}
+
+{% block content %}
+<h1 class="ui header page_header">Route Log</h1>
+<div class="ui divider"></div>
+
+<!-- Container for the accordions -->
+<div class="ui styled fluid accordion" id="route-accordion"></div>
+
+<!-- Full-screen modal to view file code -->
+<div class="ui modal fullscreen" id="codeModal">
+    <i class="close icon"></i>
+    <div class="header">
+        Viewing File: <span id="modalFileName"></span>
+    </div>
+    <div class="content">
+        <div id="codeContent"></div>
+    </div>
+    <div class="actions">
+        <div class="ui grey button" onclick="$('#codeModal').modal('hide')">Close</div>
+    </div>
+</div>
+
+<!-- New Modal for Initiating Scan -->
+<div class="ui modal" id="scanModal">
+    <i class="close icon"></i>
+    <div class="header">
+        Initiate Scan for Route: <span id="scanRouteName"></span>
+    </div>
+    <div class="content">
+        <form class="ui form" id="scanForm">
+            <!-- Scan Name Selection -->
+            <div class="field scan-name-option">
+                <label>Scan Name:</label>
+                <div class="ui radio checkbox">
+                    <input type="radio" name="scanNameOption" value="random" checked>
+                    <label>Random Name</label>
+                </div>
+                <div class="ui radio checkbox" style="margin-left: 20px;">
+                    <input type="radio" name="scanNameOption" value="custom">
+                    <label>Custom Name</label>
+                </div>
+            </div>
+            <!-- Random Name Display -->
+            <div class="field" id="randomNameField">
+                <label>Generated Scan Name:</label>
+                <input type="text" id="generatedScanName" readonly>
+            </div>
+            <!-- Custom Name Input Field -->
+            <div class="field" id="customNameField" style="display: none;">
+                <label>Enter Custom Name:</label>
+                <input type="text" id="customScanName" placeholder="Enter custom scan name">
+            </div>
+            <!-- Files to Scan -->
+            <div class="field">
+                <label>Select Files to Scan:</label>
+                <div id="fileCheckboxes"></div>
+            </div>
+            <div class="field">
+                <label>Choose Scan Template:</label>
+                <select class="ui dropdown" id="scanTemplateSelect"></select>
+            </div>
+            <div class="actions">
+                <button type="button" class="ui grey button" onclick="$('#scanModal').modal('hide')">Cancel</button>
+                <button type="submit" class="ui primary button">Start Scan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Utility functions: addLineNumbers, escapeHtml, generateRandomName
+ buildMultiFileSnippet, fetchFileContent, fetchTemplateData -->
+<script src="{{ static_url(request, 'js/route_log.js') }}"></script>
+
+
+<script type="module">
+    // Global object to store log entries keyed by route.
+    const routeData = {};
+    let scanTemplates = [];
+    let currentRandomScanName = '';
+
+    /**
+     * Uses the browser’s streaming API to continuously read from /proxy/stream-logs.
+     */
+    async function pollLogs() {
+        try {
+            const response = await fetch('/proxy/stream-logs');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            while (true) {
+                const {
+                    done,
+                    value
+                } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, {
+                    stream: true
+                });
+                const lines = buffer.split("\n");
+                // Keep the last (possibly incomplete) line in the buffer.
+                buffer = lines.pop();
+                lines.forEach(rawLine => {
+                    const line = rawLine.startsWith("data: ") ? rawLine.substring(6).trim() : rawLine
+                .trim();
+                    if (line) {
+                        onLogLine(line);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Error polling logs:", err);
+        }
+    }
+    pollLogs();
+
+
+    function onLogLine(line) {
+        try {
+            const logEntry = JSON.parse(line);
+            routeData[logEntry.route] = logEntry;
+            renderAccordions();
+        } catch (e) {
+            console.error("Failed to parse log line as JSON:", line);
+        }
+    }
+
+
+    function renderAccordions() {
+        const container = document.getElementById('route-accordion');
+        let html = '';
+        for (const route in routeData) {
+            const entry = routeData[route];
+            let contentHTML = "";
+
+            // Collect all scannable files from both files and template_api_calls
+            const scannableFiles = [];
+
+            if (entry.files && Array.isArray(entry.files)) {
+                contentHTML += "<p>Files:</p>";
+                entry.files.forEach(file => {
+                    const parsed = parseFilePath(file);
+                    scannableFiles.push(file); // Add to scannable files
+                    contentHTML +=
+                        `<p><a href="#" onclick="openFileInModal('${parsed.path}', ${parsed.startLine}, ${parsed.endLine}); return false;">${file}</a></p>`;
+                });
+            }
+
+            if (entry.template_api_calls && Array.isArray(entry.template_api_calls)) {
+                contentHTML += "<p>Template API calls found:</p>";
+                entry.template_api_calls.forEach(api => {
+                    if (api.definition) {
+                        const parsedApi = parseFilePath(api.definition);
+                        scannableFiles.push(api.definition); // Add to scannable files
+                        contentHTML +=
+                            `<p><a href="#" onclick="openFileInModal('${parsedApi.path}', ${parsedApi.startLine}, ${parsedApi.endLine}); return false;">${api.definition}</a></p>`;
+                    }
+                });
+            }
+
+            // Add scan button if there are files to scan
+            if (scannableFiles.length > 0) {
+                contentHTML += `
+                <button class="ui primary button scan-button" 
+                        data-route="${route}" 
+                        data-files='${JSON.stringify(scannableFiles)}'>
+                    Scan
+                </button>
+            `;
+            }
+
+            html += `
+            <div class="title">
+                <i class="dropdown icon"></i>
+                ${route}
+            </div>
+            <div class="content">
+                ${contentHTML}
+            </div>
+        `;
+        }
+        container.innerHTML = html;
+        $(container).accordion();
+    }
+
+    // -------------- Modal Handling --------------
+    window.openFileInModal = async function(filePath, startLine, endLine) {
+        $('#modalFileName').text(`${filePath}#${startLine}-${endLine}`);
+        $('#codeContent').text('Loading file content...');
+        $('#codeModal').modal('show');
+        try {
+            const resp = await fetch(`/proxy/get-file?path=${encodeURIComponent(filePath)}`);
+            if (!resp.ok) {
+                const errTxt = await resp.text();
+                $('#codeContent').text(`Error fetching file: ${errTxt}`);
+                return;
+            }
+            const data = await resp.json();
+            const code = data.content || '';
+            const safeCode = escapeHtml(code);
+            const withNums = addLineNumbers(safeCode, startLine, endLine);
+            $('#codeContent').html(withNums);
+        } catch (error) {
+            $('#codeContent').text('Error: ' + error);
+        }
+    };
+
+
+    function parseFilePath(file) {
+        const hashIndex = file.indexOf('#');
+        let path = file;
+        let startLine = 1;
+        let endLine = Infinity;
+        if (hashIndex !== -1) {
+            path = file.substring(0, hashIndex);
+            const lineRange = file.substring(hashIndex + 1);
+            const lines = lineRange.split('-').map(Number);
+            if (lines.length === 2) {
+                startLine = lines[0];
+                endLine = lines[1];
+            } else if (lines.length === 1) {
+                startLine = lines[0];
+                endLine = lines[0];
+            }
+        }
+        return {
+            path,
+            startLine,
+            endLine
+        };
+    }
+
+    // -------------- Scan Initiation --------------
+    $(document).ready(function() {
+        fetchScanTemplates();
+        $('.ui.accordion').accordion();
+        $('.ui.dropdown').dropdown();
+        $('.ui.checkbox').checkbox();
+
+        $('#route-accordion').on('click', '.scan-button', function() {
+            const route = $(this).data('route');
+            const files = JSON.parse($(this).attr('data-files'));
+            openScanModal(route, files);
+        });
+
+        $('#scanForm').on('submit', function(event) {
+            event.preventDefault();
+            initiateScan();
+        });
+
+        $('input[name="scanNameOption"]').change(function() {
+            if ($(this).val() === 'random') {
+                $('#customNameField').hide();
+                $('#randomNameField').show();
+                currentRandomScanName = generateRandomName();
+                $('#generatedScanName').val(currentRandomScanName);
+            } else if ($(this).val() === 'custom') {
+                $('#customNameField').show();
+                $('#randomNameField').hide();
+            }
+        });
+    });
+
+    function fetchScanTemplates() {
+        $.ajax({
+            url: '/scan/get-templates',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if (Array.isArray(data)) {
+                    scanTemplates = data;
+                } else if (data.templates && Array.isArray(data.templates)) {
+                    scanTemplates = data.templates;
+                } else {
+                    console.error('Unexpected response format for /scan/get-templates:', data);
+                    scanTemplates = [];
+                }
+                populateTemplateDropdown();
+            },
+            error: function(err) {
+                console.error('Error fetching scan templates:', err);
+                $('#scanTemplateSelect').append(
+                '<option value="" disabled>No templates available</option>');
+                $('#scanTemplateSelect').dropdown('refresh');
+            }
+        });
+    }
+
+    function populateTemplateDropdown() {
+        const dropdown = $('#scanTemplateSelect');
+        dropdown.empty();
+        if (scanTemplates.length === 0) {
+            dropdown.append('<option value="" disabled>No templates available</option>');
+            dropdown.dropdown('refresh');
+            return;
+        }
+        dropdown.append('<option value="" disabled selected>Select a template</option>');
+        scanTemplates.forEach(template => {
+            dropdown.append(`<option value="${template.name}">${template.name}</option>`);
+        });
+        dropdown.dropdown('refresh');
+    }
+
+    function openScanModal(route, files) {
+        $('#scanRouteName').text(route);
+        const fileCheckboxesContainer = $('#fileCheckboxes');
+        fileCheckboxesContainer.empty();
+
+        files.forEach((file, index) => {
+            const checkboxId = `file-checkbox-${index}`;
+            fileCheckboxesContainer.append(`
+            <div class="field">
+                <div class="ui checkbox">
+                    <input type="checkbox" name="files" value="${file}" id="${checkboxId}" checked>
+                    <label for="${checkboxId}">${file}</label>
+                </div>
+            </div>
+        `);
+        });
+
+        $('.ui.checkbox').checkbox();
+        currentRandomScanName = generateRandomName();
+        $('#generatedScanName').val(currentRandomScanName);
+        $('input[name="scanNameOption"][value="random"]').prop('checked', true);
+        $('#customNameField').hide();
+        $('#randomNameField').show();
+        $('#scanModal').modal({
+            autofocus: false,
+            closable: true
+        }).modal('show');
+    }
+
+    async function initiateScan() {
+        const selectedFiles = [];
+        $('input[name="files"]:checked').each(function() {
+            selectedFiles.push($(this).val());
+        });
+        const selectedTemplate = $('#scanTemplateSelect').val();
+        const scanNameOption = $('input[name="scanNameOption"]:checked').val();
+        let scanName = '';
+        if (scanNameOption === 'random') {
+            scanName = $('#generatedScanName').val();
+            if (!scanName) {
+                alert('Random scan name not generated. Please try again.');
+                return;
+            }
+        } else if (scanNameOption === 'custom') {
+            scanName = $('#customScanName').val().trim();
+            if (scanName === '') {
+                alert('Please enter a custom scan name.');
+                return;
+            }
+        }
+        if (selectedFiles.length === 0) {
+            alert('Please select at least one file to scan.');
+            return;
+        }
+        if (!selectedTemplate) {
+            alert('Please select a scan template.');
+            return;
+        }
+        try {
+            const codeSnippets = [];
+            for (const file of selectedFiles) {
+                const {
+                    path,
+                    startLine,
+                    endLine
+                } = parseFilePath(file);
+                const fileContent = await fetchFileContent(path);
+                const extractedCode = extractCodeLines(fileContent, startLine, endLine);
+                codeSnippets.push(extractedCode);
+            }
+            const multiFileContent = buildMultiFileSnippet(selectedFiles, codeSnippets);
+            const templateData = await fetchTemplateData(selectedTemplate);
+            const populatedTemplate = populateTemplate(templateData, multiFileContent);
+            const payload = {
+                scan_name: scanName,
+                template_name: selectedTemplate,
+                code: populatedTemplate
+            };
+            await $.ajax({
+                url: '/scan/start-scan',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload)
+            });
+            alert(`Scan "${scanName}" has been initiated successfully!`);
+            $('#scanModal').modal('hide');
+        } catch (error) {
+            console.error('Error initiating scan:', error);
+            alert('Failed to initiate scan. Please try again.');
+        }
+    }
+
+
+
+    function populateTemplate(templateData, code) {
+        return templateData.replace("CODE_PLACEHOLDER_HERE", code);
+    }
+
+    function extractCodeLines(content, start, end) {
+        const lines = content.split('\n');
+        const sliceEnd = end === Infinity ? lines.length : end;
+        return lines.slice(start - 1, sliceEnd).join('\n');
+    }
+</script>
+{% endblock %}

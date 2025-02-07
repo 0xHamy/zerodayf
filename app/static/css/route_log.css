@@ -1,0 +1,49 @@
+.highlighted-line {
+    background-color: yellow;
+}
+
+/* Make the modal content scrollable in fullscreen mode */
+.ui.modal.fullscreen .content {
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+/* Simple styling for line numbers */
+.code-line {
+    white-space: pre;
+    font-family: monospace;
+    display: flex;
+}
+
+.line-num {
+    color: #888;
+    text-align: right;
+    margin-right: 1em;
+    min-width: 40px;
+    user-select: none;
+}
+
+/* Styling for code content */
+#codeContent {
+    background: #f7f7f7;
+    padding: 1em;
+    margin: 0;
+    overflow-x: auto;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+/* Additional styling for scan modal */
+#scanTemplateSelect {
+    width: 100%;
+}
+
+/* Styling for scan name radio buttons and input */
+.scan-name-option {
+    margin-bottom: 1em;
+}
+
+#customNameField,
+#randomNameField {
+    margin-top: 0.5em;
+}
