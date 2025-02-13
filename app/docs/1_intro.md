@@ -26,7 +26,7 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 ## Limitions
 1. At the moment only web apps developed with Flask is supported
 2. You can only add HuggingFace and OpenAI APIs
-3. When inspector is mapping routes to backend code files, you may not be able to browse others page, zerodayf might look like it's freezing, it's just intended issue 
+3. When inspector is mapping routes to backend code files, you may not be able to browse others page, zerodayf might look like it's freezing, it's just intended issue because requests are being processed in the background and you can't use the web app until the background tasks completesss
 
 ---
 
