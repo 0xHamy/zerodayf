@@ -33,7 +33,7 @@ Make sure to dissect code properly.
 ```
 
 ## Proxy Configuration
-Before start your Flask web app that you are going to test. 
+Before starting proxy, you need to start your Flask web app that you are going to test. 
 
 ### Direct Browser Integration
 For direct browser traffic interception:
