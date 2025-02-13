@@ -1,5 +1,5 @@
 # Introduction
-Zerodayf is an advanced code analysis platform that leverages artificial intelligence to identify vulnerabilities within source code. 
+Zerodayf (Zeroday Factory) is an advanced code analysis platform that leverages artificial intelligence to identify vulnerabilities within source code. 
 
 The system differentiates itself by offering a flexible approach to code analysis, enabling security professionals and developers to utilize their preferred AI models for comprehensive code evaluation beyond traditional vulnerability detection.
 
