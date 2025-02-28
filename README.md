@@ -1,5 +1,5 @@
 ![Project Logo](./app/static/image/dashboard.png)
-[![Version](https://shields.io/badge/version-0.1.0--beta-orange)]()
+[![Version](https://shields.io/badge/version-0.6.0--beta-orange)]()
 [![Build Status](https://shields.io/badge/build-passing-green)]()
 [![License](https://shields.io/badge/license-MIT-blue)]()
 [![Status](https://shields.io/badge/status-beta-yellow)]()
