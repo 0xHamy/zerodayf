@@ -1,9 +1,9 @@
-import requests
 from huggingface_hub import InferenceClient
-from openai import OpenAI
+import openai
+from anthropic import Anthropic
 
 
-def check_api(provider: str, token: str, model_name: str):
+def check_api(provider: str, token: str, model_name: str, max_tokens: int):
     """
     Returns a dict: {"valid": bool, "message": str}
     `valid` is True if the response from the model includes "19", else False.
@@ -13,10 +13,13 @@ def check_api(provider: str, token: str, model_name: str):
 
     try:
         if provider.lower() == "huggingface":
-            result_text = _check_huggingface(token, model_name, prompt)
+            result_text = _check_huggingface(token, model_name, prompt, max_tokens)
 
         elif provider.lower() == "openai":
-            result_text = _check_openai(token, model_name, prompt)
+            result_text = _check_openai(token, model_name, prompt, max_tokens)
+            
+        elif provider.lower() == "anthropic":
+            result_text = _check_anthropic(token, model_name, prompt, max_tokens)
 
         else:
             return {
@@ -44,7 +47,7 @@ def check_api(provider: str, token: str, model_name: str):
         }
 
 
-def _check_huggingface(token: str, model_name: str, prompt: str) -> str:
+def _check_huggingface(token: str, model_name: str, prompt: str, max_tokens: int) -> str:
     client = InferenceClient(api_key=token)
     messages = [
         {"role": "user", "content": prompt}
@@ -52,20 +55,33 @@ def _check_huggingface(token: str, model_name: str, prompt: str) -> str:
     completion = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        max_tokens=100
+        max_tokens=max_tokens
     )
     return completion.choices[0].message.content
 
 
-def _check_openai(token: str, model_name: str, prompt: str) -> str:
-    
-    client = OpenAI(api_key=token)
-    messages = [
-        {"role": "user", "content": prompt}
-    ]
-    completion = client.chat.completions.create(
+def _check_openai(token: str, model_name: str, prompt: str, max_tokens: int) -> str:
+    client = openai.Client(api_key=token) 
+    response = client.chat.completions.create(
         model=model_name,
-        messages=messages,
-        max_tokens=100
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=max_tokens,
+        temperature=1
     )
-    return completion.choices[0].message.content
+    return response.choices[0].message.content
+
+
+def _check_anthropic(token: str, model_name: str, prompt: str, max_tokens: int) -> str:
+    client = Anthropic(api_key=token)
+    message = client.messages.create(
+        model=model_name,
+        max_tokens=max_tokens,
+        temperature=1,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return message.content[0].text
+
+
+

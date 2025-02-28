@@ -1,13 +1,17 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from .routes.api.api_router import api_router
 from .routes.proxy.proxy_router import proxy_router
-from .routes.scan.scan_router import scan_router, get_scan_result
+from .routes.code_analysis.analysis_template_router import template_analysis_router
+from .routes.code_analysis.code_map_router import code_map_router
+from .routes.code_analysis.base_mapper import base_mapper_router
 from .routes.usage.usage_router import usage_router
+from .routes.utils.utils_router import util_router
+from .routes.code_analysis.analysis_router import analysis_router
 from .models.database import create_tables, get_db, AsyncSession, CodeScans
 from sqlalchemy.future import select 
-import os
+import os, json, markdown
 
 app = FastAPI()
 
@@ -48,13 +52,18 @@ async def proxy_log(request: Request):
 async def route_log(request: Request):
     return templates.TemplateResponse("route_log.html", {"request": request})
 
-@app.get("/scans")
-async def scans(request: Request):
-    return templates.TemplateResponse("scans.html", {"request": request})
+@app.get("/code-map")
+async def code_map(request: Request):
+    return templates.TemplateResponse("code_map.html", {"request": request})
 
-@app.get("/scan-templates")
-async def scan_templates(request: Request):
-    return templates.TemplateResponse("scan_templates.html", {"request": request})
+@app.get("/code-analysis")
+async def code_analysis(request: Request):
+    return templates.TemplateResponse("code_analysis.html", {"request": request})
+
+@app.get("/analysis-templates")
+async def analysis_templates(request: Request):
+    return templates.TemplateResponse("analysis_templates.html", {"request": request})
+
 
 @app.get("/manage-api")
 async def manage_api(request: Request):
@@ -66,19 +75,69 @@ async def usage(request: Request):
     return templates.TemplateResponse("usage.html", {"request": request})
 
 
-@app.get("/scans/scan-result/{scan_name}")
-async def scan_result_page(request: Request, scan_name: str):
-    return templates.TemplateResponse(
-        "scan_result.html",
-        {
-            "request": request,
-            "scan_name": scan_name
-        }
-    )
+
+@app.get("/analysis/report/{scan_uid}")
+async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = Depends(get_db)):
+    try:
+        query = select(CodeScans).where(CodeScans.uid == scan_uid)
+        result = await db.execute(query)
+        scan = result.scalar_one_or_none()
+
+        if not scan:
+            raise HTTPException(status_code=404, detail="Scan not found")
+
+        formatted_date = scan.date.strftime("%m/%d/%Y, %I:%M:%S %p")
+        formatted_result = None
+
+        if scan.scan_type == "ai":
+            formatted_result = markdown.markdown(scan.scan_result)
+        elif scan.scan_type == "semgrep":
+            try:
+                cleaned_json = scan.scan_result.replace('\n', '\\n').replace('\t', '\\t')
+                scan_result_json = json.loads(cleaned_json)
+                
+                # Check if "results" key exists and group findings by path 
+                if "results" in scan_result_json:
+                    findings = scan_result_json["results"]
+                    grouped_findings = {}
+                    for finding in findings:
+                        path = finding["path"]
+                        if path not in grouped_findings:
+                            grouped_findings[path] = {
+                                "path": path,
+                                "scanned_code": finding.get("code", ""),
+                                "results": []
+                            }
+                        grouped_findings[path]["results"].append(finding)
+                    formatted_result = list(grouped_findings.values())
+                else:
+                    formatted_result = []
+            except (json.JSONDecodeError, KeyError) as e:
+                formatted_result = {"error": f"Invalid Semgrep JSON: {str(e)}"}
+
+        return templates.TemplateResponse(
+            "view_report.html",
+            {
+                "request": request,
+                "scan_name": scan.scan_name,
+                "scan_uid": scan.uid,
+                "scan_type": scan.scan_type,
+                "scan_date": formatted_date,
+                "scan_template": scan.scan_template,
+                "scan_result": formatted_result
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Register routers
 app.include_router(api_router)
 app.include_router(proxy_router)
-app.include_router(scan_router)
+app.include_router(template_analysis_router)
+app.include_router(code_map_router)
 app.include_router(usage_router)
+app.include_router(base_mapper_router)
+app.include_router(util_router)
+app.include_router(analysis_router)
+

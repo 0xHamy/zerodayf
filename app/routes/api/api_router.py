@@ -15,6 +15,7 @@ class APIValidationRequest(BaseModel):
     name: str
     provider: str
     token: str
+    max_tokens: int
     model: str | None = None  
 
 
@@ -23,6 +24,7 @@ async def validate_api_credentials(request: APIValidationRequest):
     check_result = check_api( 
         provider=request.provider,
         token=request.token,
+        max_tokens=request.max_tokens,
         model_name=request.model or ""
     )
 
@@ -58,6 +60,7 @@ async def save_api(request: APIValidationRequest):
                 name=request.name,
                 provider=request.provider,
                 token=request.token,
+                max_tokens=request.max_tokens,
                 model=request.model,
             )
             db.add(new_api)
@@ -115,6 +118,7 @@ async def get_apis():
                     "token": api.token,
                     "model": api.model,
                     "provider": api.provider,
+                    "max_tokens": api.max_tokens,
                     "is_active": api.is_active,
                     "created_at": api.created_at.isoformat()
                 }

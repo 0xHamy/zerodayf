@@ -97,6 +97,9 @@ body {
 /* ======================
    Navigation 
 ======================= */
+/* ======================
+   Navigation 
+======================= */
 .ui.attached.menu {
     background-color: #ba6cc4;
     border: none;
@@ -119,11 +122,24 @@ body {
             background-color: #ce75d9 !important;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             
-            /* New dropdown item hover style */
-            .item:hover {
-                background-color: #b45cbf !important;
-                transition: background-color 0.3s ease;
+            .item {
+                &:hover {
+                    background-color: #b45cbf !important;
+                    transition: background-color 0.3s ease;
+                }
+                
+                /* Style for active dropdown items */
+                &.active {
+                    background-color: #8b4a94 !important;
+                    color: #fff !important;
+                }
             }
+        }
+
+        /* Highlight the dropdown parent when child is active */
+        &.item.highlighted {
+            background-color: #8b4a94 !important;
+            color: #fff !important;
         }
 
         /* Dropdown visibility control */

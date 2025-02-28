@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Templates{% endblock %}
+
+{% block css %}
+<style>
+    .ui.fullscreen.modal .content {
+        overflow-y: auto;
+        max-height: 80vh;
+    }
+
+    #templateData {
+        min-height: 300px;
+        width: 100%;
+    }
+
+    #markdownPreview {
+        min-height: 300px;
+        width: 100%;
+        background: #fafafa;
+        padding: 1em;
+    }
+
+    /* The top tab menu bar */
+    .ui.top.attached.tabular.menu {
+        background-color: #e0e0e0 !important;
+        border: none !important;
+    }
+
+    /* Each tab item style */
+    .ui.top.attached.tabular.menu .item {
+        color: #333 !important;
+    }
+
+    /* The active tab item */
+    .ui.top.attached.tabular.menu .item.active {
+        background-color: #9e9e9e !important;
+        color: #fff !important;
+    }
+
+    /* The bottom attached tab segment border */
+    .ui.bottom.attached.tab.segment {
+        border: 1px solid #ccc !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="ui header page_header">Analysis Templates</h1>
+<div class="ui divider"></div>
+
+<!-- Notification Area -->
+<div id="notification" style="display: none; margin-bottom: 1rem;">
+    <div class="ui message">
+        <i class="close icon"></i>
+        <div class="content">
+            <span class="notification-text"></span>
+        </div>
+    </div>
+</div>
+
+<div class="ui segment">
+    <button class="ui primary button" id="addTemplateBtn">Add Template</button>
+    
+    <table class="ui celled table" id="templatesTable" style="margin-top: 1rem;">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th style="width: 25%">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="2" class="center aligned">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Full-screen modal for view/add/edit a template -->
+<div class="ui fullscreen modal" id="templateModal">
+    <i class="close icon"></i>
+    <div class="header" id="modalHeader">Add Template</div>
+    <div class="content">
+        <form class="ui form" id="templateForm">
+            <div class="inline fields">
+                <div class="field">
+                    <label for="templateName">Name</label>
+                    <input type="text" id="templateName" name="templateName">
+                </div>
+                <div class="field">
+                    <label for="templateType">Template Type</label>
+                    <select class="ui dropdown" id="templateType" name="templateType">
+                        <option value="">Select Template Type</option>
+                        <option value="ai">AI Template</option>
+                        <option value="semgrep">Semgrep Rules</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TABS for editing vs. previewing Markdown -->
+            <div class="ui top attached tabular menu">
+                <a class="item active" data-tab="edit">Edit</a>
+                <a class="item" data-tab="preview">Preview</a>
+            </div>
+
+            <div class="ui bottom attached tab segment active" data-tab="edit">
+                <textarea id="templateData" name="templateData" rows="20"></textarea>
+            </div>
+
+            <div class="ui bottom attached tab segment" data-tab="preview">
+                <div id="markdownPreview"></div>
+            </div>
+        </form>
+    </div>
+    <div class="actions">
+        <button class="ui grey button" id="modalCancelBtn">Cancel</button>
+        <button class="ui primary button" id="modalSaveBtn">Save</button>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="ui modal" id="confirmationModal">
+    <div class="header">Confirm Deletion</div>
+    <div class="content">
+        <p id="confirmationMessage">Are you sure you want to proceed?</p>
+    </div>
+    <div class="actions">
+        <div class="ui cancel button">No</div>
+        <div class="ui primary approve button">Yes</div>
+    </div>
+</div>
+
+<script src="{{ static_url(request, 'js/analysis_templates.js') }}"></script>
+{% endblock %}

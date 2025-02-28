@@ -2,6 +2,42 @@
 
 {% block title %}API Settings{% endblock %}
 
+{% block styles %}
+<style>
+    .hidden {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    .visible {
+        display: block;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .ui.table td.center.aligned {
+        text-align: center;
+    }
+
+    #message-container {
+        margin-top: 1rem;
+    }
+
+    .actions-column button {
+        margin: 2px;
+    }
+
+    i.green.check.circle.icon {
+        color: #21ba45 !important;
+    }
+
+    i.grey.times.circle.icon {
+        color: #767676 !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1 class="ui header page_header">API Settings</h1>
 <div class="ui segment">
@@ -20,6 +56,7 @@
                     <div class="menu">
                         <div class="item" data-value="huggingface">HuggingFace</div>
                         <div class="item" data-value="openai">OpenAI</div>
+                        <div class="item" data-value="anthropic">Anthropic</div>
                     </div>
                 </div>
             </div>
@@ -30,6 +67,10 @@
             <div class="field">
                 <label>API Token</label>
                 <input type="text" name="token">
+            </div>
+            <div class="field">
+                <label>Max Tokens</label>
+                <input type="number" value="100" name="max_tokens">
             </div>
         </div>
         <div class="ui buttons">
@@ -59,6 +100,7 @@
                 <th>Token</th>
                 <th>Data Model</th>
                 <th>Provider</th>
+                <th>Max Tokens</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -124,7 +166,8 @@
                 name,
                 provider,
                 token,
-                dataModel
+                dataModel,
+                max_tokens
             } = getFormData();
             if (!validateForm()) return;
             try {
@@ -137,7 +180,8 @@
                         name,
                         provider,
                         token,
-                        model: dataModel
+                        model: dataModel,
+                        max_tokens
                     })
                 });
                 const result = await response.json();
@@ -156,7 +200,8 @@
                 name,
                 provider,
                 token,
-                dataModel
+                dataModel,
+                max_tokens
             } = getFormData();
             try {
                 const response = await fetch('/api/save-api', {
@@ -168,7 +213,8 @@
                         name,
                         provider,
                         token,
-                        model: dataModel
+                        model: dataModel,
+                        max_tokens
                     })
                 });
                 if (response.ok) {
@@ -238,6 +284,7 @@
                     </td>
                     <td>${api.model || ''}</td>
                     <td>${api.provider}</td>
+                    <td>${api.max_tokens}</td>
                     <td>
                         ${api.is_active
                             ? '<i class="green check circle icon"></i> Active'
@@ -282,7 +329,8 @@
             name: $('input[name="name"]').val(),
             provider: $('input[name="provider"]').val(),
             token: $('input[name="token"]').val(),
-            dataModel: $('input[name="dataModel"]').val()
+            dataModel: $('input[name="dataModel"]').val(),
+            max_tokens: $('input[name="max_tokens"]').val()
         };
     }
 
@@ -290,7 +338,8 @@
         const {
             name,
             provider,
-            token
+            token,
+            max_tokens
         } = getFormData();
         if (!name || !provider || !token) {
             showMessage('All fields are required', 'negative');
@@ -303,6 +352,7 @@
         $('input[name="name"]').val('');
         $('input[name="token"]').val('');
         $('input[name="dataModel"]').val('');
+        $('input[name="max_tokens"]').val('');
         $('#provider-dropdown').dropdown('clear');
     }
 
@@ -317,37 +367,5 @@
     }
 </script>
 
-<style>
-    .hidden {
-        display: none;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-    }
 
-    .visible {
-        display: block;
-        opacity: 1;
-        transition: opacity 0.3s ease;
-    }
-
-    .ui.table td.center.aligned {
-        text-align: center;
-    }
-
-    #message-container {
-        margin-top: 1rem;
-    }
-
-    .actions-column button {
-        margin: 2px;
-    }
-
-    i.green.check.circle.icon {
-        color: #21ba45 !important;
-    }
-
-    i.grey.times.circle.icon {
-        color: #767676 !important;
-    }
-</style>
 {% endblock %}

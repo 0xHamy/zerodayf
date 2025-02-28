@@ -1,0 +1,59 @@
+{
+    "version": "1.109.0",
+    "results": [{
+        "check_id": "python.lang.security.audit.eval-detected.eval-detected",
+        "path": "/tmp/tmpj962l4j_/stdin",
+        "start": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+        },
+        "end": {
+            "line": 1,
+            "col": 12,
+            "offset": 11
+        },
+        "extra": {
+            "message": "Detected the use of eval(). eval() can be dangerous if used to evaluate dynamic content. If this content can be input from outside the program, this may be a code injection vulnerability. Ensure evaluated content is not definable by external sources.",
+            "metadata": {
+                "source-rule-url": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b307-eval",
+                "cwe": [
+                    "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')"],
+                "owasp": ["A03:2021 - Injection"],
+                "asvs": {
+                    "control_id": "5.2.4 Dyanmic Code Execution Features",
+                    "control_url": "https://github.com/OWASP/ASVS/blob/master/4.0/en/0x13-V5-Validation-Sanitization-Encoding.md#v52-sanitization-and-sandboxing-requirements",
+                    "section": "V5: Validation, Sanitization and Encoding Verification Requirements",
+                    "version": "4"
+                },
+                "category": "security",
+                "technology": ["python"],
+                "references": ["https://owasp.org/Top10/A03_2021-Injection"],
+                "subcategory": ["audit"],
+                "likelihood": "LOW",
+                "impact": "HIGH",
+                "confidence": "LOW",
+                "license": "Semgrep Rules License v1.0. For more details, visit semgrep.dev/legal/rules-license",
+                "vulnerability_class": ["Code Injection"],
+                "source": "https://semgrep.dev/r/python.lang.security.audit.eval-detected.eval-detected",
+                "shortlink": "https://sg.run/ZvrD"
+            },
+            "severity": "WARNING",
+            "fingerprint": "requires login",
+            "lines": "requires login",
+            "validation_state": "NO_VALIDATOR",
+            "engine_kind": "OSS"
+        }
+    }],
+    "errors": [{
+        "code": 2,
+        "level": "warn",
+        "type": "Other syntax error",
+        "message": "Other syntax error at line /tmp/tmpj962l4j_/stdin:1:\n Failure: not a program",
+        "path": "/tmp/tmpj962l4j_/stdin"
+    }],
+    "paths": {
+        "scanned": ["/tmp/tmpj962l4j_/stdin"]
+    },
+    "skipped_rules": []
+}

@@ -3,7 +3,6 @@
 {% block title %}Proxy Log{% endblock %}
 
 {% block css %}
-
 <style>
     /* Custom scrollbar styling for xterm.js */
     .xterm {
@@ -53,7 +52,6 @@
         </p>
     </div>
     <div class="eight wide column right aligned">
-        <!-- We'll show/hide these buttons dynamically -->
         <button class="ui inverted green button" id="proxy_start" style="display: none;">
             Start
         </button>
@@ -63,12 +61,11 @@
     </div>
 </div>
 
-
 <!-- Proxy Configuration Form -->
 <div class="ui segment">
     <h2 class="ui header">Proxy Configuration</h2>
     <form class="ui form">
-        <div class="three fields">
+        <div class="four fields">
             <div class="field">
                 <label>IP Address</label>
                 <input type="text" id="ip" placeholder="127.0.0.1" name="ip">
@@ -90,29 +87,8 @@
                 </div>
             </div>
             <div class="field">
-                <label>Enter BurpSuite IP & Port</label>
+                <label>BurpSuite Address</label>
                 <input type="text" id="burpsuite" placeholder="http://127.0.0.1:8080" name="burpsuite">
-            </div>
-        </div>
-
-        <div class="two fields">
-            <div class="field">
-                <label>Framework</label>
-                <div class="ui selection dropdown">
-                    <input type="hidden" name="framework">
-                    <i class="dropdown icon"></i>
-                    <div class="default text">Select web framework</div>
-                    <div class="menu">
-                        <div class="item" data-value="Flask">Flask</div>
-                        <div class="item" data-value="Laravel">Laravel</div>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="field">
-                <label>Enter web app source code</label>
-                <input type="text" id="source_path" placeholder="/var/www/zerodayf.local" name="source_path">
             </div>
         </div>
 
@@ -139,283 +115,5 @@
     </div>
 </div>
 
-
-<script>
-    let source = null;
-    let confirmAction = null;
-
-    // Create one xterm instance
-    const term = new Terminal({
-        cursorBlink: true,
-        fontSize: 15,
-        fontFamily: 'Courier New, Courier, monospace',
-        theme: {
-            background: '#1e1e1e',
-            foreground: '#d4d4d4',
-        },
-        scrollback: 10000,
-    });
-
-
-    function setupSource() {
-        async function pollLogs() {
-            try {
-                const response = await fetch('/proxy/stream-logs');
-                // Get a reader for the response body.
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder("utf-8");
-                let buffer = "";
-                while (true) {
-                    const {
-                        done,
-                        value
-                    } = await reader.read();
-                    if (done) break;
-                    // Decode the incoming chunk and add it to the buffer.
-                    buffer += decoder.decode(value, {
-                        stream: true
-                    });
-                    // Split buffer into lines.
-                    const lines = buffer.split("\n");
-                    // The last element may be an incomplete line – keep it in the buffer.
-                    buffer = lines.pop();
-                    // Process each complete line.
-                    lines.forEach(rawLine => {
-                        // Remove any "data: " prefix (common in SSE streams).
-                        const line = rawLine.startsWith("data: ") ? rawLine.substring(6).trim() : rawLine
-                            .trim();
-                        if (!line) return;
-                        try {
-                            const logEntry = JSON.parse(line);
-                            const outputLines = [];
-
-                            outputLines.push("Route: " + logEntry.route);
-                            outputLines.push("View Function: " + logEntry.view_function);
-
-                            // If a "files" array exists, display each file on its own line.
-                            if (logEntry.files && Array.isArray(logEntry.files) && logEntry.files.length >
-                                0) {
-                                outputLines.push("Files:");
-                                logEntry.files.forEach(file => {
-                                    outputLines.push("  " + file);
-                                });
-                            } else if (logEntry.file) {
-                                // Fallback if only a single "file" key exists.
-                                outputLines.push("File: " + logEntry.file);
-                            }
-
-                            // Display template API calls if available.
-                            if (logEntry.template_api_calls && Array.isArray(logEntry.template_api_calls) &&
-                                logEntry.template_api_calls.length > 0) {
-                                outputLines.push("Template API calls found:");
-                                logEntry.template_api_calls.forEach(api => {
-                                    outputLines.push("  - " + api.url + " -> " + api.definition);
-                                });
-                            }
-                            // Append a separator (40 dashes)
-                            outputLines.push("-".repeat(40));
-                            outputLines.forEach(l => term.writeln(l));
-                        } catch (e) {
-                            // If JSON parsing fails, write the raw line.
-                            term.writeln(line);
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error("Error fetching logs:", err);
-            }
-        }
-        // Start polling
-        pollLogs();
-    }
-
-
-    // We'll define our jQuery "document.ready" logic inside a standard function
-    function initPage() {
-        // Open the terminal
-        term.open(document.getElementById('terminal'));
-        document.querySelector('.xterm').style.padding = '10px';
-        term.writeln('Welcome to the Proxy Log Terminal!');
-        term.writeln('Logs will appear here.\n');
-
-        // Initialize dropdown
-        $('.ui.dropdown').dropdown();
-
-        // Setup modal confirm
-        $('#confirm-modal .approve.button').click(function() {
-            if (confirmAction) confirmAction();
-        });
-
-        // Check if proxy is running on page load
-        checkIfRunning();
-        // Load the proxy settings
-        loadProxySettings();
-
-        // Save button
-        $('#save-btn').click(saveProxySettings);
-
-        // Start/Stop buttons
-        $('#proxy_start').click(handleStartClick);
-        $('#proxy_stop').click(handleStopClick);
-    }
-
-    // --------------- Functions from your existing code ---------------
-    function checkIfRunning() {
-        $.get('/proxy/is-running', function(data) {
-            toggleButtons(data.is_running);
-            if (data.is_running) {
-                setupSource();
-            }
-        });
-    }
-
-    function loadProxySettings() {
-        $.get('/proxy/get-proxy', function(data) {
-            const proxyDetails = $('#proxy-status .proxy-details');
-            if (data.ip && data.port) {
-                const type = data.proxy_type === 'zerodayf_to_browser' ?
-                    'Zerodayf to Browser' :
-                    'Zerodayf to Burpsuite [' + data.burpsuite + ']';
-                proxyDetails.html(
-                    `${data.ip}:${data.port} (${type}) <br> <b>WebApp Source Path:</b> [${data.source_path}] <br> <b>Framework:</b> ${data.framework}`
-                );
-            } else {
-                proxyDetails.html('No proxy configured');
-            }
-        });
-    }
-
-    function saveProxySettings() {
-        const $btn = $(this);
-        $btn.addClass('loading');
-
-        const ip = $('#ip').val().trim();
-        const port = $('#port').val().trim();
-        const proxyType = $('input[name="proxy_type"]').val();
-        const source_path = $('#source_path').val().trim();
-        const burpsuite = $('#burpsuite').val().trim();
-        const framework = $('input[name="framework"]').val().trim();
-
-        // Basic validation
-        if (!ip || !port || !proxyType) {
-            showNotification('Please fill all fields', 'error');
-            $btn.removeClass('loading');
-            return;
-        }
-
-        const portNumber = parseInt(port, 10);
-        if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
-            showNotification('Invalid port number (1-65535)', 'error');
-            $btn.removeClass('loading');
-            return;
-        }
-
-        $.ajax({
-            url: '/proxy/save-proxy',
-            method: 'POST',
-            data: {
-                ip: ip,
-                port: portNumber,
-                proxy_type: proxyType,
-                source_path: source_path,
-                burpsuite: burpsuite,
-                framework: framework
-            },
-            success: function(response) {
-                showNotification(response.message, response.status);
-                loadProxySettings();
-            },
-            error: function(xhr) {
-                const msg = xhr.responseJSON?.detail || 'Failed to save proxy';
-                showNotification(msg, 'error');
-            },
-            complete: function() {
-                $btn.removeClass('loading');
-            }
-        });
-    }
-
-    function handleStartClick() {
-        openConfirmModal(
-            'Start Proxy',
-            'Are you sure you want to start the proxy?',
-            function() {
-                term.clear();
-                term.writeln('Starting the proxy...');
-
-                $.ajax({
-                    url: '/proxy/start',
-                    method: 'POST',
-                    success: function(data) {
-                        term.writeln(data.message);
-                        setupSource(); // attach SSE
-                        toggleButtons(true);
-                    },
-                    error: function(xhr) {
-                        term.writeln(
-                            `Error: ${xhr.responseJSON?.message || 'An error occurred'}`
-                        );
-                    }
-                });
-            }
-        );
-    }
-
-    function handleStopClick() {
-        openConfirmModal(
-            'Stop Proxy',
-            'Are you sure you want to stop the proxy?',
-            function() {
-                term.clear();
-                term.writeln('Stopping the proxy...');
-
-                $.ajax({
-                    url: '/proxy/stop',
-                    method: 'POST',
-                    success: function(data) {
-                        term.writeln(data.message);
-                        toggleButtons(false);
-                    },
-                    error: function(xhr) {
-                        term.writeln(
-                            `Error: ${xhr.responseJSON?.message || 'An error occurred'}`
-                        );
-                    }
-                });
-            }
-        );
-    }
-
-    function openConfirmModal(header, message, onConfirm) {
-        confirmAction = onConfirm;
-        $('#confirm-header').text(header);
-        $('#confirm-message').text(message);
-        $('#confirm-modal').modal('show');
-    }
-
-    function toggleButtons(isRunning) {
-        if (isRunning) {
-            $('#proxy_start').hide();
-            $('#proxy_stop').show();
-        } else {
-            $('#proxy_stop').hide();
-            $('#proxy_start').show();
-        }
-    }
-
-    function showNotification(message, type = 'success') {
-        const notification = $('#notification');
-        notification.find('.message')
-            .removeClass('positive negative')
-            .addClass(type === 'success' ? 'positive' : 'negative')
-            .find('.notification-text').text(message);
-
-        notification.show().delay(5000).fadeOut();
-        notification.find('.close').off('click').click(() => notification.hide());
-    }
-
-    // --------------- Initialize on DOM ready ---------------
-    $(document).ready(initPage);
-</script>
-
+<script src="{{ static_url(request, 'js/proxy_log.js') }}"></script>
 {% endblock %}

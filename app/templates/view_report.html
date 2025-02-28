@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Report: {{ scan_name }}{% endblock %}
+
+{% block css %}
+<style>
+    .details-table {
+        margin-bottom: 20px;
+    }
+    .ui.form textarea {
+        font-family: monospace;
+    }
+    .scan-report {
+        margin-top: 20px;
+    }
+    .path-section {
+        margin-bottom: 30px;
+    }
+    .path-section .ui.list .item {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+    }
+    .path-section .description {
+        margin-top: 10px;
+    }
+    .path-section .scanned-code {
+        margin-top: 10px;
+    }
+    .path-section .scanned-code textarea {
+        width: 100%;
+        min-height: 100px;
+        font-family: monospace;
+        background: #f8f8f8;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 10px;
+    }
+    .download-buttons {
+        display: flex;
+        gap: 10px; /* Spacing between buttons */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="ui header page_header">Viewing: {{ scan_name }}</h1>
+<div class="ui segment">
+    <!-- Scan Details Table -->
+    <table class="ui celled table details-table">
+        <thead>
+            <tr>
+                <th>Scan UID</th>
+                <th>Scan Type</th>
+                <th>Scan Date</th>
+                <th>Scan Template</th>
+                <th>Download Scan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ scan_uid }}</td>
+                <td>{{ scan_type }}</td>
+                <td>{{ scan_date }}</td>
+                <td><button class="ui button" id="viewTemplateBtn">View Template</button></td>
+                <td>
+                    {% if scan_type in ["ai", "semgrep"] %}
+                        <div class="download-buttons">
+                            <button class="ui red small button download-btn" data-format="pdf">PDF</button>
+                            <button class="ui blue small button download-btn" data-format="html">HTML</button>
+                            <button class="ui green small button download-btn" data-format="markdown">Markdown</button>
+                        </div>
+                    {% else %}
+                        <span>Download not available</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Scan Report Section -->
+    <div class="scan-report">
+        {% if scan_type == "ai" and scan_result %}
+            <div class="ui segment">
+                <h2 class="ui header">Scan Results</h2>
+                {{ scan_result | safe }}
+            </div>
+        {% elif scan_type == "semgrep" and scan_result %}
+            <div class="ui segment">
+                <h2 class="ui header">Scan Results</h2>
+                {% if scan_result.error %}
+                    <div class="ui negative message">
+                        <p>{{ scan_result.error }}</p>
+                    </div>
+                {% else %}
+                    {% for path_result in scan_result %}
+                        <div class="path-section">
+                            <h3 class="ui header">{{ path_result.path }}</h3>
+                            <div class="scanned-code">
+                                <textarea readonly>{{ path_result.scanned_code }}</textarea>
+                            </div>
+                            {% if path_result.results %}
+                                <div class="ui list">
+                                    {% for finding in path_result.results %}
+                                        <div class="item">
+                                            <i class="exclamation triangle icon"></i>
+                                            <div class="content">
+                                                <div class="header">{{ finding.severity }} - {{ finding.impact }}</div>
+                                                <div class="description">
+                                                    <p><strong>Message:</strong> {{ finding.message }}</p>
+                                                    <p><strong>CWE:</strong> {{ finding.cwe | join(', ') }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No findings reported for this path.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Template Modal -->
+    <div class="ui modal" id="templateModal">
+        <div class="header">Scan Template</div>
+        <div class="content">
+            <div class="ui form">
+                <div class="field">
+                    <textarea readonly>{{ scan_template }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui button cancel">Close</div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+$(document).ready(function() {
+    $('.download-btn').on('click', function() {
+        var format = $(this).data('format');
+        var scanType = "{{ scan_type }}".toLowerCase();
+        var uid = "{{ scan_uid }}";
+        if (scanType === "ai") {
+            window.location.href = `/utils/download-report/ai/${uid}?report_type=${format}`;
+        } else if (scanType === "semgrep") {
+            window.location.href = `/utils/download-report/semgrep/${uid}?report_type=${format}`;
+        }
+    });
+
+    $('#viewTemplateBtn').on('click', function() {
+        $('#templateModal').modal('show');
+    });
+});
+</script>
+{% endblock %}

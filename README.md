@@ -49,7 +49,7 @@ sudo docker compose up --build -d
 
 Upon successful execution, Zerodayf will be accessible at `127.0.0.1:1337`. 
 
-Zerodayf uses MITMProxy for intercepting traffic so you must install and configure MITMproxy for your machine. Once you start the proxy, you can use the installation [steps on this page](https://mitmproxy.it/) to setup MITMproxy. This page won't be accessible unless you activate proxy. 
+Zerodayf uses MITMProxy for intercepting traffic so you must install and configure MITMproxy for your machine. Once you start the proxy, you can use the installation [steps on this page](https://mitm.it/) to setup MITMproxy. This page won't be accessible unless you activate proxy. 
 
 The Docker container configuration implements the following specifications through the `Dockerfile`:
 - Python 3.12.3 installation

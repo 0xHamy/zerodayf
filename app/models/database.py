@@ -26,6 +26,7 @@ class APIKey(Base):
     provider = Column(String(50))
     model = Column(String(255))
     token = Column(String)
+    max_tokens = Column(Integer)
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=get_time)
 
@@ -43,9 +44,7 @@ class ProxySettings(Base):
         ),
         nullable=False
     )
-    source_path = Column(String(512), nullable=True)
     burpsuite = Column(String(256), nullable=True)
-    framework = Column(String(256), nullable=True)
     created_at = Column(DateTime(timezone=True), default=get_time)
     
     # Ensure only one row can exist
@@ -54,12 +53,21 @@ class ProxySettings(Base):
     )
 
 
-class ScanTemplates(Base):
-    __tablename__ = "scan_templates"
+class AnalysisTemplates(Base):
+    __tablename__ = "analysis_templates"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True, nullable=False)
     data = Column(Text, nullable=False)
+    template_type = Column(String(255), nullable=False)
+    date = Column(DateTime(timezone=True), default=get_time)
+
+
+class CodeMappings(Base):
+    __tablename__ = "code_mappings"
+    id = Column(Integer, primary_key=True)
+    endpoint = Column(String(512), nullable=False)
+    code_file_paths = Column(Text, nullable=False)
     date = Column(DateTime(timezone=True), default=get_time)
 
 
@@ -68,6 +76,8 @@ class CodeScans(Base):
 
     id = Column(Integer, primary_key=True)
     scan_name = Column(String(255), unique=True, nullable=False)
+    uid = Column(String(255), nullable=False)
+    scan_type = Column(String(255), nullable=False)
     scan_template = Column(Text, nullable=False)
     scan_result = Column(Text, nullable=False)
     date = Column(DateTime(timezone=True), default=get_time)

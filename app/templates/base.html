@@ -50,18 +50,15 @@
                 </div>
             </div>
 
-            <!-- Scans Dropdown -->
-            <div class="ui simple dropdown item 
-            {% if request.url.path.startswith('/scans') or request.url.path.startswith('/scan-templates') %} highlighted {% endif %}">
-                Scans <i class="dropdown icon"></i>
+            <!-- Code Analysis Dropdown -->
+            <div class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/code-map', '/code-analysis', '/analysis-templates'] }}">
+                Code Analysis <i class="dropdown icon"></i>
                 <div class="menu">
-                    <a class="item {% if request.url.path == '/scans' %}active{% endif %}" href="/scans">Scans</a>
-                    <a class="item {% if request.url.path == '/scan-templates' %}active{% endif %}"
-                        href="/scan-templates">Scan Templates</a>
+                    <a class="item {{ 'active' if request.url.path == '/code-map' }}" href="/code-map">Code Map</a>
+                    <a class="item {{ 'active' if request.url.path == '/code-analysis' }}" href="/code-analysis">Code Analysis</a>
+                    <a class="item {{ 'active' if request.url.path == '/analysis-templates' }}" href="/analysis-templates">Analysis Templates</a>
                 </div>
             </div>
-
-
 
             <!-- Manage API -->
             <a class="item {{ 'active' if request.url.path == '/manage-api' }}" href="/manage-api">Manage API</a>
