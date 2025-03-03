@@ -11,7 +11,7 @@ code_map_router = APIRouter(prefix="/code-map", tags=["Code Map"])
 @code_map_router.get("/mappings")
 async def get_mappings(db: AsyncSession = Depends(get_db)):
     try:
-        query = select(CodeMappings)
+        query = select(CodeMappings).order_by(CodeMappings.date.desc())
         result = await db.execute(query)
         mappings = result.scalars().all()
         return JSONResponse(

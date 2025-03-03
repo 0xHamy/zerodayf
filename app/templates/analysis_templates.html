@@ -59,9 +59,26 @@
     </div>
 </div>
 
+<!-- Templates Table -->
 <div class="ui segment">
-    <button class="ui primary button" id="addTemplateBtn">Add Template</button>
-    
+    <div id="scan-message" class="ui message" style="display: none; margin-top: 10px;"></div>
+    <div class="ui grid">
+        
+        <div class="two column row">
+            <div class="left floated column">
+                <button class="ui primary button" id="addTemplateBtn">Add Template</button>
+            </div>
+            <div class="right floated column">
+                <div class="ui right floated buttons">
+                    <button class="mini ui inverted pink button" id="load_ai_template">Load default AI template</button>
+                    <div class="or"></div>
+                    <button class="mini ui inverted violet button" id="load_semgrep_template">Load default Semgrep
+                        template</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <table class="ui celled table" id="templatesTable" style="margin-top: 1rem;">
         <thead>
             <tr>
@@ -78,10 +95,12 @@
     </table>
 </div>
 
+
 <!-- Full-screen modal for view/add/edit a template -->
 <div class="ui fullscreen modal" id="templateModal">
     <i class="close icon"></i>
     <div class="header" id="modalHeader">Add Template</div>
+
     <div class="content">
         <form class="ui form" id="templateForm">
             <div class="inline fields">

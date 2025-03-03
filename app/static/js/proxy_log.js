@@ -1,7 +1,6 @@
 let source = null;
 let confirmAction = null;
 
-// Create one xterm instance
 const term = new Terminal({
     cursorBlink: true,
     fontSize: 15,
@@ -13,18 +12,14 @@ const term = new Terminal({
     scrollback: 10000,
 });
 
+/**
+ * Sets up an EventSource connection to stream logs into the terminal.
+ */
 function setupSource() {
-    // Clear existing logs first
     term.clear();
     term.writeln('Starting log display...\n');
-
-    // Close any existing EventSource
     cleanupSource();
-
-    // Create new EventSource connection
     window.eventSource = new EventSource('/proxy/stream-logs');
-
-    // Handle incoming messages
     window.eventSource.onmessage = function(event) {
         try {
             const logEntry = JSON.parse(event.data);
@@ -35,16 +30,12 @@ function setupSource() {
             console.error('Error parsing log:', e);
         }
     };
-
     window.eventSource.onerror = function(error) {
-        // Only show error if we haven't cleaned up intentionally
         if (window.eventSource) {
             console.error('EventSource error:', error);
             term.writeln('Connection to log stream interrupted - will try to reconnect...');
-
-            // Attempt to reconnect after a delay
             setTimeout(() => {
-                if (window.eventSource) { // Only reconnect if we haven't cleaned up
+                if (window.eventSource) {
                     setupSource();
                 }
             }, 2000);
@@ -52,6 +43,9 @@ function setupSource() {
     };
 }
 
+/**
+ * Closes the existing EventSource connection and updates the terminal.
+ */
 function cleanupSource() {
     if (window.eventSource) {
         window.eventSource.close();
@@ -60,34 +54,32 @@ function cleanupSource() {
     }
 }
 
+/**
+ * Initializes the page: sets up terminal, UI components, and event listeners.
+ */
 function initPage() {
-    // Open the terminal
     term.open(document.getElementById('terminal'));
     document.querySelector('.xterm').style.padding = '10px';
     term.writeln('Welcome to the Proxy Log Terminal!');
     term.writeln('Logs will appear here.\n');
 
-    // Initialize dropdown
     $('.ui.dropdown').dropdown();
 
-    // Setup modal confirm
     $('#confirm-modal .approve.button').click(function() {
         if (confirmAction) confirmAction();
     });
 
-    // Check if proxy is running on page load
     checkIfRunning();
-    // Load the proxy settings
     loadProxySettings();
 
-    // Save button
     $('#save-btn').click(saveProxySettings);
-
-    // Start/Stop buttons
     $('#proxy_start').click(handleStartClick);
     $('#proxy_stop').click(handleStopClick);
 }
 
+/**
+ * Checks if the proxy is running and updates UI accordingly.
+ */
 function checkIfRunning() {
     $.get('/proxy/is-running', function(data) {
         toggleButtons(data.is_running);
@@ -97,6 +89,9 @@ function checkIfRunning() {
     });
 }
 
+/**
+ * Loads and displays the current proxy settings.
+ */
 function loadProxySettings() {
     $.get('/proxy/get-proxy', function(data) {
         const proxyDetails = $('#proxy-status .proxy-details');
@@ -111,6 +106,9 @@ function loadProxySettings() {
     });
 }
 
+/**
+ * Saves proxy settings to the server with validation.
+ */
 function saveProxySettings() {
     const $btn = $(this);
     $btn.addClass('loading');
@@ -120,7 +118,6 @@ function saveProxySettings() {
     const proxyType = $('input[name="proxy_type"]').val();
     const burpsuite = $('#burpsuite').val().trim();
 
-    // Basic validation
     if (!ip || !port || !proxyType) {
         showNotification('Please fill all fields', 'error');
         $btn.removeClass('loading');
@@ -157,6 +154,9 @@ function saveProxySettings() {
     });
 }
 
+/**
+ * Handles the proxy start button click with confirmation.
+ */
 function handleStartClick() {
     openConfirmModal(
         'Start Proxy',
@@ -174,15 +174,16 @@ function handleStartClick() {
                     toggleButtons(true);
                 },
                 error: function(xhr) {
-                    term.writeln(
-                        `Error: ${xhr.responseJSON?.message || 'An error occurred'}`
-                    );
+                    term.writeln(`Error: ${xhr.responseJSON?.message || 'An error occurred'}`);
                 }
             });
         }
     );
 }
 
+/**
+ * Handles the proxy stop button click with confirmation.
+ */
 function handleStopClick() {
     openConfirmModal(
         'Stop Proxy',
@@ -201,15 +202,16 @@ function handleStopClick() {
                     toggleButtons(false);
                 },
                 error: function(xhr) {
-                    term.writeln(
-                        `Error: ${xhr.responseJSON?.message || 'An error occurred'}`
-                    );
+                    term.writeln(`Error: ${xhr.responseJSON?.message || 'An error occurred'}`);
                 }
             });
         }
     );
 }
 
+/**
+ * Opens a confirmation modal with the given header, message, and callback.
+ */
 function openConfirmModal(header, message, onConfirm) {
     confirmAction = onConfirm;
     $('#confirm-header').text(header);
@@ -217,6 +219,9 @@ function openConfirmModal(header, message, onConfirm) {
     $('#confirm-modal').modal('show');
 }
 
+/**
+ * Toggles visibility of start/stop buttons based on proxy state.
+ */
 function toggleButtons(isRunning) {
     if (isRunning) {
         $('#proxy_start').hide();
@@ -227,6 +232,9 @@ function toggleButtons(isRunning) {
     }
 }
 
+/**
+ * Displays a notification with the given message and type.
+ */
 function showNotification(message, type = 'success') {
     const notification = $('#notification');
     notification.find('.message')
@@ -238,5 +246,4 @@ function showNotification(message, type = 'success') {
     notification.find('.close').off('click').click(() => notification.hide());
 }
 
-// Initialize on DOM ready
 $(document).ready(initPage);

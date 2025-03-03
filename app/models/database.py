@@ -75,7 +75,7 @@ class CodeScans(Base):
     __tablename__ = "code_scans"
 
     id = Column(Integer, primary_key=True)
-    scan_name = Column(String(255), unique=True, nullable=False)
+    scan_name = Column(String(255), nullable=False)
     uid = Column(String(255), nullable=False)
     scan_type = Column(String(255), nullable=False)
     scan_template = Column(Text, nullable=False)

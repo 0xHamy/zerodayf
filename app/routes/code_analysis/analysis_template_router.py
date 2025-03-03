@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from sqlalchemy import select
 from pydantic import BaseModel, Field
 from app.models.database import SessionLocal, AnalysisTemplates
 from datetime import datetime
+from app.models.database import AnalysisTemplates, get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.responses import JSONResponse
 
 
 template_analysis_router = APIRouter(prefix="/analysis-templates", tags=["Analysis Template"])
@@ -33,7 +36,7 @@ async def get_template_by_name(db, name: str):
 async def get_templates():
     """Get all templates"""
     async with SessionLocal() as db:
-        result = await db.execute(select(AnalysisTemplates))
+        result = await db.execute(select(AnalysisTemplates).order_by(AnalysisTemplates.date.desc()))
         return result.scalars().all()
 
 
@@ -82,4 +85,72 @@ async def delete_template(template_name: str):
             await db.commit()
             return {"message": "Template deleted successfully"}
         raise HTTPException(status_code=404, detail="Template not found")
+
+
+@template_analysis_router.post("/load-defaults/{template_type}")
+async def load_default_templates(template_type: str, db: AsyncSession = Depends(get_db)):
+    """
+    Populate the analysis_templates table with dummy data based on the template type.
+    Args:
+        template_type: The type of template to populate ('ai' or 'semgrep')
+    """
+
+    if template_type not in ["ai", "semgrep"]:
+        return JSONResponse(
+            status_code=200,  
+            content={"status": "error", "message": "Invalid template_type. Must be 'ai' or 'semgrep'"}
+        )
+
+    # Define dummy data based on template type
+    if template_type == "ai":
+        dummy_data = [
+            {
+                "name": "default_ai",
+                "data": """
+### Perform vulnerability analysis on code
+
+Analyze the following codes, tell me the 'possible' if any relation between them. Look for the vulnerabilities:
+- XSS
+- SSRF
+- Code injection
+
+CODEPLACEHOLDER
+                """,
+                "template_type": "ai"
+            }
+        ]
+    elif template_type == "semgrep":
+        dummy_data = [
+            {
+                "name": "default_semgrep",
+                "data": """p/security-audit""",
+                "template_type": "semgrep"
+            }
+        ]
+
+    # Attempt to insert data
+    try:
+        async with SessionLocal() as session:
+            for data in dummy_data:
+                template = AnalysisTemplates(
+                    name=data["name"],
+                    data=data["data"],
+                    template_type=data["template_type"]
+                )
+                session.add(template)
+            await session.commit()
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "success",
+                    "message": f"Successfully added {data["name"]}."
+                }
+            )
+    except Exception as e:
+        await session.rollback()
+        return JSONResponse(
+            status_code=200,
+            content={"status": "error", "message": f"Failed to add {template_type} templates: {str(e)}"}
+        )
+
 

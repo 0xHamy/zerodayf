@@ -52,7 +52,7 @@ async def get_templates_by_type():
 @analysis_router.get("/code-scans")
 async def get_code_scans(db: AsyncSession = Depends(get_db)):
     try:
-        query = select(CodeScans)
+        query = select(CodeScans).order_by(CodeScans.date.desc())
         result = await db.execute(query)
         scans = result.scalars().all()
         return JSONResponse(
@@ -122,6 +122,7 @@ async def delete_code_scans(payload: Dict = Body(...), db: AsyncSession = Depend
 @analysis_router.post("/perform-analysis/semgrep")
 async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
     try:
+        scan_name = scan_data.get("scan_name")
         files = scan_data.get("files", [])
         template_name = scan_data.get("template")
 
@@ -154,7 +155,6 @@ async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)
 
         timestamp = int(time.time())
         uid = f"semgrep_{timestamp}"
-        scan_name = f"Scan_{template_name}_{timestamp}"
         scan_result_json = json.dumps(scan_results)
 
         new_scan = CodeScans(
@@ -180,7 +180,7 @@ async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)
 @analysis_router.post("/perform-analysis/ai")
 async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
     try:
-        # Extract files and template name from the request
+        scan_name = scan_data.get("scan_name")
         files = scan_data.get("files", [])
         template_name = scan_data.get("template")
 
@@ -198,12 +198,12 @@ async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
         # Prepare code snippets with file paths
         code_snippets = []
         for file in files:
-            full_path = file["path"]  # e.g., "/path/to/file#start-end"
+            full_path = file["path"] 
             try:
                 file_path, line_range = full_path.split('#')
                 start_line, end_line = map(int, line_range.split('-')) if line_range else (None, None)
             except ValueError:
-                start_line, end_line = None, None  # No line range provided
+                start_line, end_line = None, None 
 
             # Read the file content
             try:
@@ -214,11 +214,10 @@ async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
 
             # Extract the code snippet based on line range
             if start_line and end_line:
-                code = ''.join(lines[start_line-1:end_line])  # 0-based indexing
+                code = ''.join(lines[start_line-1:end_line])
             else:
-                code = ''.join(lines)  # Use full file if no range
+                code = ''.join(lines)
 
-            # Format the snippet with file path and code
             code_snippets.append(f"{full_path}\n{code}")
 
         # Combine snippets with three line breaks
@@ -231,9 +230,6 @@ async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
         # Generate a unique ID for the scan
         timestamp = int(time.time())
         uid = f"ai_{timestamp}"
-
-        # Save the scan results to the database
-        scan_name = f"Scan_{template_name}_{timestamp}"
 
         new_scan = CodeScans(
             scan_name=scan_name,
