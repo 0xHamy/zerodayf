@@ -44,8 +44,16 @@ Deploying Zerodayf via Docker container represents the most efficient implementa
 
 To create a container, execute the following command in the Zerodayf root directory:
 ```bash
-sudo docker compose up --build -d
+sudo docker-compose up --build
 ```
+
+If you wanted to make changes and have them reflected, remove & start the container again:
+```bash
+sudo docker-compose down
+sudo docker volume rm zerodayf_postgres_data
+sudo docker-compose up --build
+```
+
 
 Upon successful execution, Zerodayf will be accessible at `127.0.0.1:1337`. 
 
@@ -58,76 +66,7 @@ The Docker container configuration implements the following specifications throu
 - Port 1337 exposure for web application access
 
 ### Dockerfile Configuration
-```Dockerfile
-FROM python:3.12.3
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    pandoc \
-    texlive-full \
-    postgresql-client \
-    netcat-traditional \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Create and add wait-for script
-RUN echo '#!/bin/bash\n\
-until nc -z localhost 5757; do\n\
-  echo "Waiting for database..."\n\
-  sleep 2\n\
-done\n\
-echo "Database is ready!"\n\
-exec "$@"' > /wait-for.sh && chmod +x /wait-for.sh
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 1337
-
-CMD ["/wait-for.sh", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "1337"]
-```
-
-### Docker Compose Configuration
 The docker-compose.yaml configuration file requires careful consideration due to its security implications:
-
-```yaml
-services:
-  web:
-    build: .
-    network_mode: "host"
-    volumes:
-      - .:/app
-      - /home:/home:ro
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://test:test@localhost:5757/zerodayf
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: always
-
-  db:
-    image: postgres:13
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
-      - POSTGRES_DB=zerodayf
-    ports:
-      - "5757:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test -d zerodayf"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-volumes:
-  postgres_data:
-```
-
-Important configuration considerations:
 - The `network_mode: "host"` setting grants the Docker container full access to your host network
 - Volume configurations enable Docker to access host system files, with read-only (ro) access to the `/home` directory, where projects are expected to reside
 - While database credentials can be modified, maintaining default values is recommended unless specifically required
