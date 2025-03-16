@@ -44,14 +44,14 @@ Deploying Zerodayf via Docker container represents the most efficient implementa
 
 To create a container, execute the following command in the Zerodayf root directory:
 ```bash
-sudo docker-compose up --build
+sudo docker-compose up --build -d
 ```
 
 If you want to make changes and have them reflected, remove & start the container again:
 ```bash
 sudo docker-compose down
 sudo docker volume rm zerodayf_postgres_data
-sudo docker-compose up --build
+sudo docker-compose up --build -d
 ```
 
 
