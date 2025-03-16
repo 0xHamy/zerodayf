@@ -1,5 +1,12 @@
 FROM python:3.12.3
 
+# Set working directory
+WORKDIR /app
+
+# Install semgrep system-wide
+RUN python3 -m pip install semgrep==1.109.0 --break-system-packages
+
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     pandoc \
@@ -8,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
 
 # Create and add wait-for script
 RUN echo '#!/bin/bash\n\

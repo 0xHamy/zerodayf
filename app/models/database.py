@@ -7,7 +7,7 @@ import pytz, tzlocal, os
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://test:test@localhost/zerodayf"
+    "postgresql+asyncpg://postgres:postgres@localhost/zerodayf"
 )
 
 engine = create_async_engine(DATABASE_URL)
