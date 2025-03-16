@@ -47,7 +47,7 @@ To create a container, execute the following command in the Zerodayf root direct
 sudo docker-compose up --build
 ```
 
-If you wanted to make changes and have them reflected, remove & start the container again:
+If you want to make changes and have them reflected, remove & start the container again:
 ```bash
 sudo docker-compose down
 sudo docker volume rm zerodayf_postgres_data
