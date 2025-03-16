@@ -47,6 +47,8 @@ To create a container, execute the following command in the Zerodayf root direct
 sudo docker-compose up --build -d
 ```
 
+If you want to see the web app's logs, start without `-d` argument.
+
 If you want to make changes and have them reflected, remove & start the container again:
 ```bash
 sudo docker-compose down
