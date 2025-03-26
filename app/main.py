@@ -2,9 +2,8 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from .routes.api.api_router import api_router
+from .routes.endpoint_map.endpoint_map import endpoint_map_router
 from .routes.code_analysis.analysis_template_router import template_analysis_router
-from .routes.code_analysis.code_map_router import code_map_router
-from .routes.code_analysis.base_mapper import base_mapper_router
 from .routes.usage.usage_router import usage_router
 from .routes.utils.utils_router import util_router
 from .routes.code_analysis.analysis_router import analysis_router
@@ -129,9 +128,8 @@ async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = De
 # Register routers
 app.include_router(api_router)
 app.include_router(template_analysis_router)
-app.include_router(code_map_router)
+app.include_router(endpoint_map_router)
 app.include_router(usage_router)
-app.include_router(base_mapper_router)
 app.include_router(util_router)
 app.include_router(analysis_router)
 

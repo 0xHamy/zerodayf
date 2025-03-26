@@ -41,11 +41,11 @@ class AnalysisTemplates(Base):
     date = Column(DateTime(timezone=True), default=get_time)
 
 
-class CodeMappings(Base):
-    __tablename__ = "code_mappings"
+class EndpointMappings(Base):
+    __tablename__ = "endpoint_mappings"
     id = Column(Integer, primary_key=True)
-    endpoint = Column(String(512), nullable=False)
-    code_file_paths = Column(Text, nullable=False)
+    name = Column(String(512), nullable=False)
+    data = Column(Text, nullable=False)
     date = Column(DateTime(timezone=True), default=get_time)
 
 
