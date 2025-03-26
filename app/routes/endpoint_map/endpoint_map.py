@@ -5,6 +5,7 @@ from app.models.database import get_db, EndpointMappings
 from sqlalchemy import select
 from datetime import datetime
 import json
+from pydantic import BaseModel, Json
 
 endpoint_map_router = APIRouter(prefix="/endpoint-map", tags=["Endpoint Mapping"])
 
@@ -22,7 +23,7 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
                     {
                         "id": m.id,
                         "name": m.name,
-                        "data": m.data,  # This is JSON string
+                        "data": m.data,
                         "date": m.date.isoformat(),
                         "scan_status": "completed"
                     }
@@ -36,36 +37,39 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
             content={"status": "error", "message": str(e)}
         )
 
+class MappingCreate(BaseModel):
+    name: str
+    data: Json 
+
+
 @endpoint_map_router.post("/mappings")
-async def create_mapping(mapping: dict, db: AsyncSession = Depends(get_db)):
+async def create_mapping(mapping: MappingCreate, db: AsyncSession = Depends(get_db)):
     try:
-        # Validate JSON data
-        json_data = json.loads(mapping['data'])
-        
         new_mapping = EndpointMappings(
-            name=mapping['name'],
-            data=json.dumps({
-                "framework": mapping['framework'],
-                "data": json_data
-            })
+            name=mapping.name,
+            data=json.dumps(mapping.data) 
         )
+        
         db.add(new_mapping)
         await db.commit()
         await db.refresh(new_mapping)
+        
         return JSONResponse(
             status_code=201,
-            content={"status": "success", "id": new_mapping.id}
+            content={
+                "status": "success",
+                "data": {"id": new_mapping.id},
+                "message": "Mapping created successfully"
+            }
         )
-    except json.JSONDecodeError:
-        return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": "Invalid JSON data"}
-        )
+        
     except Exception as e:
-        return JSONResponse(
+        await db.rollback()
+        raise HTTPException(
             status_code=500,
-            content={"status": "error", "message": str(e)}
+            detail={"status": "error", "message": str(e)}
         )
+
 
 @endpoint_map_router.delete("/mappings")
 async def delete_mappings(mapping_ids: dict, db: AsyncSession = Depends(get_db)):

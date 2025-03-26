@@ -70,7 +70,6 @@
                 </th>
                 <th>Name</th>
                 <th>Date</th>
-                <th>Framework</th>
             </tr>
         </thead>
         <tbody id="mappings-tbody"></tbody>
@@ -86,18 +85,6 @@
             <div class="field">
                 <label>Name</label>
                 <input type="text" id="new-name" placeholder="Enter mapping name">
-            </div>
-            <div class="field">
-                <label>Framework</label>
-                <div class="ui selection dropdown" id="framework-dropdown">
-                    <input type="hidden" name="framework">
-                    <i class="dropdown icon"></i>
-                    <div class="default text">Select Framework</div>
-                    <div class="menu">
-                        <div class="item" data-value="flask">Flask</div>
-                        <div class="item" data-value="laravel">Laravel</div>
-                    </div>
-                </div>
             </div>
             <div class="field">
                 <label>Data (JSON)</label>
@@ -165,7 +152,6 @@
         // Save new mapping
         $('#save-mapping').click(function() {
             const name = $('#new-name').val();
-            const framework = $('#framework-dropdown').dropdown('get value');
             const data = $('#new-data').val();
 
             $.ajax({
@@ -174,8 +160,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({
                     name,
-                    data,
-                    framework
+                    data
                 }),
                 success: function() {
                     showMessage('success', 'Mapping added successfully');
@@ -231,7 +216,7 @@
                 $.get(`/endpoint-map/mappings/${id}`, function(response) {
                     if (response.status === 'success') {
                         $('#view-name').val(response.data.name);
-                        $('#view-date').val(new Date(response.data.date).toLocaleString());  // Formatted date
+                        $('#view-date').val(new Date(response.data.date).toLocaleString()); 
                         try {
                             const jsonData = JSON.parse(response.data.data);
                             jsonEditor.setValue(JSON.stringify(jsonData, null, 2));
@@ -265,8 +250,7 @@
                                 </div>
                             </td>
                             <td>${mapping.name}</td>
-                            <td>${new Date(mapping.date).toLocaleString()}</td>  // Formatted date
-                            <td>${framework}</td>
+                            <td>${new Date(mapping.date).toLocaleString()}</td> 
                         </tr>
                     `);
                 });
