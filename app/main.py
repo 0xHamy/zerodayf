@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from .routes.api.api_router import api_router
-from .routes.proxy.proxy_router import proxy_router
 from .routes.code_analysis.analysis_template_router import template_analysis_router
 from .routes.code_analysis.code_map_router import code_map_router
 from .routes.code_analysis.base_mapper import base_mapper_router
@@ -44,13 +43,9 @@ templates.env.globals["static_url"] = static_url
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
-@app.get("/proxy-log")
-async def proxy_log(request: Request):
-    return templates.TemplateResponse("proxy_log.html", {"request": request})
-
-@app.get("/route-log")
-async def route_log(request: Request):
-    return templates.TemplateResponse("route_log.html", {"request": request})
+@app.get("/endpoint-mapping")
+async def endpoint_map(request: Request):
+    return templates.TemplateResponse("endpoint_map.html", {"request": request})
 
 @app.get("/code-map")
 async def code_map(request: Request):
@@ -133,7 +128,6 @@ async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = De
 
 # Register routers
 app.include_router(api_router)
-app.include_router(proxy_router)
 app.include_router(template_analysis_router)
 app.include_router(code_map_router)
 app.include_router(usage_router)

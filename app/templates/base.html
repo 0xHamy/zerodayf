@@ -40,15 +40,8 @@
             <!-- Dashboard page -->
             <a class="item {{ 'active' if request.url.path == '/' }}" href="/">Dashboard</a>
 
-            <!-- Proxy Log -->
-            <div
-                class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/proxy-log', '/route-log'] }}">
-                Proxy <i class="dropdown icon"></i>
-                <div class="menu">
-                    <a class="item {{ 'active' if request.url.path == '/proxy-log' }}" href="/proxy-log">Proxy Log</a>
-                    <a class="item {{ 'active' if request.url.path == '/route-log' }}" href="/route-log">Route Log</a>
-                </div>
-            </div>
+            <!-- Endpoint mapping -->
+            <a class="item {{ 'active' if request.url.path == '/endpoint-mapping' }}" href="/endpoint-mapping">Endpoint Mapping</a>
 
             <!-- Code Analysis Dropdown -->
             <div class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/code-map', '/code-analysis', '/analysis-templates'] }}">

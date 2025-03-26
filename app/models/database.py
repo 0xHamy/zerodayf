@@ -31,28 +31,6 @@ class APIKey(Base):
     created_at = Column(DateTime(timezone=True), default=get_time)
 
 
-class ProxySettings(Base):
-    __tablename__ = "proxy_settings"
-    singleton_id = Column(Integer, primary_key=True, default=1, unique=True)
-    
-    ip = Column(String(15), nullable=False)
-    port = Column(Integer, CheckConstraint('port BETWEEN 1 AND 65535'), nullable=False)
-    proxy_type = Column(
-        String(21), 
-        CheckConstraint(
-            "proxy_type IN ('zerodayf_to_browser', 'zerodayf_to_burpsuite')"
-        ),
-        nullable=False
-    )
-    burpsuite = Column(String(256), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=get_time)
-    
-    # Ensure only one row can exist
-    __table_args__ = (
-        UniqueConstraint('singleton_id', name='single_row_check'),
-    )
-
-
 class AnalysisTemplates(Base):
     __tablename__ = "analysis_templates"
 
