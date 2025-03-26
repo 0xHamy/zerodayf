@@ -21,13 +21,11 @@
     <!-- Semantic UI JS CDN -->
     <script src="{{ static_url(request, 'js/semantic.min.js') }}"></script>
     <link rel="stylesheet" href="{{ static_url(request, 'css/base.css') }}">
-    <!-- Xterm CSS -->
-    <link rel="stylesheet" href="{{ static_url(request, 'css/xterm.min.css') }}">
-    <!-- Xterm.js from CDN -->
-    <script src="{{ static_url(request, 'js/xterm.min.js') }}"></script>
     <!-- Showdown.js -->
     <script src="{{ static_url(request, 'js/showdown.min.js') }}"></script>
-
+    <!-- For extra imports, e.g. custom libs for specific pages -->
+    {% block extra_imports %}
+    {% endblock %}
     <!-- Custom CSS -->
     {% block css %}
     {% endblock %}

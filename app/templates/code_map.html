@@ -2,6 +2,12 @@
 
 {% block title %}Code Map{% endblock %}
 
+{% block extra_imports %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+{% endblock %}
+
 {% block css %}
 <style>
     #mappings-table {
@@ -32,8 +38,10 @@
         font-family: monospace;
     }
 
-    .button-container {
-        margin-bottom: 15px;
+    .CodeMirror {
+        height: 300px;
+        border: 1px solid #ddd;
+        font-size: 13px;
     }
 </style>
 {% endblock %}
@@ -129,8 +137,21 @@
 
 <script>
     $(document).ready(function() {
+        // Initialize CodeMirror for the view-json textarea
+        const jsonEditor = CodeMirror.fromTextArea(document.getElementById('view-json'), {
+            mode: 'application/json',
+            theme: 'default',
+            lineNumbers: true,
+            readOnly: true,
+            viewportMargin: Infinity,
+            scrollbarStyle: 'native'
+        });
+
         // Initialize dropdown
         $('#framework-dropdown').dropdown();
+
+        // Initialize the add-data-modal
+        $('#add-data-modal').modal();
 
         // Load initial data
         loadMappings();
@@ -139,7 +160,7 @@
         $('#add-new-btn').click(function() {
             $('#add-data-modal').modal('show');
         });
-
+        
         // Save new mapping
         $('#save-mapping').click(function() {
             const name = $('#new-name').val();
@@ -150,14 +171,19 @@
                 url: '/endpoint-map/mappings',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ name, data, framework }),
+                data: JSON.stringify({
+                    name,
+                    data,
+                    framework
+                }),
                 success: function() {
                     showMessage('success', 'Mapping added successfully');
                     $('#add-data-modal').modal('hide');
                     loadMappings();
                 },
                 error: function(xhr) {
-                    showMessage('error', xhr.responseJSON?.message || 'Error adding mapping');
+                    showMessage('error', xhr.responseJSON?.message ||
+                        'Error adding mapping');
                 }
             });
         });
@@ -181,13 +207,16 @@
                     url: '/endpoint-map/mappings',
                     type: 'DELETE',
                     contentType: 'application/json',
-                    data: JSON.stringify({ mapping_ids: selectedIds }),
+                    data: JSON.stringify({
+                        mapping_ids: selectedIds
+                    }),
                     success: function() {
                         showMessage('success', 'Mappings deleted successfully');
                         loadMappings();
                     },
                     error: function(xhr) {
-                        showMessage('error', xhr.responseJSON?.message || 'Error deleting mappings');
+                        showMessage('error', xhr.responseJSON?.message ||
+                            'Error deleting mappings');
                     }
                 });
             }
@@ -201,9 +230,18 @@
                 $.get(`/endpoint-map/mappings/${id}`, function(response) {
                     if (response.status === 'success') {
                         $('#view-name').val(response.data.name);
-                        $('#view-date').val(response.data.date);
-                        $('#view-json').val(JSON.stringify(JSON.parse(response.data.data), null, 2));
-                        $('#view-data-modal').modal('show');
+                        $('#view-date').val(new Date(response.data.date).toLocaleString());  // Formatted date
+                        try {
+                            const jsonData = JSON.parse(response.data.data);
+                            jsonEditor.setValue(JSON.stringify(jsonData, null, 2));
+                        } catch (e) {
+                            jsonEditor.setValue('Invalid JSON: ' + response.data.data);
+                        }
+                        $('#view-data-modal').modal({
+                            onShow: function() {
+                                jsonEditor.refresh();
+                            }
+                        }).modal('show');
                     }
                 });
             }
@@ -226,7 +264,7 @@
                                 </div>
                             </td>
                             <td>${mapping.name}</td>
-                            <td>${mapping.date}</td>
+                            <td>${new Date(mapping.date).toLocaleString()}</td>  // Formatted date
                             <td>${framework}</td>
                         </tr>
                     `);
