@@ -1,51 +1,6 @@
 // Global object to store route data from log entries
 const routeData = {};
 
-/**
- * Polls the server for log streams and processes them line by line.
- * Uses the Fetch API with a ReadableStream to handle real-time log updates.
- */
-async function pollLogs() {
-    try {
-        const response = await fetch('/proxy/stream-logs');
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop();
-
-            lines.forEach(rawLine => {
-                const line = rawLine.startsWith("data: ") ?
-                    rawLine.substring(6).trim() : rawLine.trim();
-                if (line) {
-                    onLogLine(line);
-                }
-            });
-        }
-    } catch (err) {
-        console.error("Error polling logs:", err);
-    }
-}
-
-/**
- * Processes a single log line, parsing it as JSON and updating routeData.
- * @param {string} line - A single log line from the server.
- */
-function onLogLine(line) {
-    try {
-        const logEntry = JSON.parse(line);
-        routeData[logEntry.route] = logEntry; 
-        renderTable(); 
-    } catch (e) {
-        console.error("Failed to parse log line as JSON:", line);
-    }
-}
 
 /**
  * Renders the route table with filtered data based on a search term.
@@ -116,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     $('.ui.dropdown').dropdown();
 
     // Handle search input to filter the route table
-    $('#route-search').on('input', function(e) {
+    $('#endpoint-search').on('input', function(e) {
         renderTable(e.target.value);
     });
 

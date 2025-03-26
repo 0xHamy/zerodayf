@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Route Log{% endblock %}
+{% block title %}Endpoint Mapping{% endblock %}
 
 {% block css %}
 <style>
     .search-container {
         margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
     }
 
     .button-container {
@@ -13,28 +16,25 @@
     }
 
     /* Route table styling */
+    #route-table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
     #route-table th:nth-child(1),
     #route-table td:nth-child(1) {
-        width: 50px;
+        width: 40px;  /* Reduced width for checkbox column */
     }
 
     #route-table th:nth-child(2),
     #route-table td:nth-child(2) {
-        width: 65%;
+        width: auto;  /* Let endpoint column take remaining space */
     }
 
-    #route-table th:nth-child(3),
-    #route-table td:nth-child(3) {
-        width: 35%;
-    }
-
-    #route-table td:nth-child(2),
-    #route-table td:nth-child(3) {
+    #route-table td:nth-child(2) {
         white-space: nowrap;
         overflow-x: auto;
-        max-width: 0;
         text-overflow: ellipsis;
-        padding-bottom: 12px;
     }
 
     #route-table td::-webkit-scrollbar {
@@ -55,20 +55,13 @@
         background: #1678c2;
     }
 
-    #route-table {
-        margin-top: 10px;
-    }
-
     .mapping-form {
         margin-bottom: 20px;
     }
 
-    #route-table {
-        max-width: 100%;
-        width: 100%;
-        table-layout: fixed;
+    .search-input {
+        width: 300px;  /* Fixed width for search input */
     }
-    /* END OF Route table styling */
 </style>
 {% endblock %}
 
@@ -76,12 +69,25 @@
 <h1 class="ui header page_header">Endpoint Mapping</h1>
 <div class="ui divider"></div>
 
-<!-- Search Bar -->
+<!-- Search Bar and Dropdown -->
 <div class="search-container">
-    <div class="ui fluid icon input">
-        <input type="text" id="route-search" placeholder="Search endpoints...">
+    <div class="ui icon input search-input">
+        <input type="text" id="endpoint-search" placeholder="Search endpoints...">
         <i class="search icon"></i>
     </div>
+    
+    <div class="ui selection dropdown" id="endpoint-dropdown">
+        <input type="hidden" name="endpoint-data">
+        <i class="dropdown icon"></i>
+        <div class="default text">Select Endpoint Data</div>
+        <div class="menu">
+            <div class="item" data-value="endpoint1">Endpoints_data1</div>
+            <div class="item" data-value="endpoint2">Endpoints_data2</div>
+            <div class="item" data-value="endpoint3">Endpoints_data3</div>
+        </div>
+    </div>
+    
+    <button class="ui violet button" id="load-endpoints">Load Endpoints</button>
 </div>
 
 <!-- Map Button -->
@@ -101,7 +107,6 @@
                     <label></label>
                 </div>
             </th>
-            <th>Full Route</th>
             <th>Endpoint</th>
         </tr>
     </thead>
@@ -151,5 +156,20 @@
     </div>
 </div>
 
+<script>
+    // Initialize Semantic UI dropdowns
+    $('#endpoint-dropdown').dropdown();
+    $('#framework-dropdown').dropdown();
+
+    // Load endpoints button click handler
+    $('#load-endpoints').on('click', function() {
+        const selectedEndpoint = $('#endpoint-dropdown').dropdown('get text');
+        if (selectedEndpoint && selectedEndpoint !== 'Select Endpoint Data') {
+            alert('Loading: ' + selectedEndpoint);
+        } else {
+            alert('Please select an endpoint first');
+        }
+    });
+</script>
 <script src="{{ static_url(request, 'js/route_log.js') }}"></script>
 {% endblock %}
