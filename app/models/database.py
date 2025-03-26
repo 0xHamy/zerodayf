@@ -44,7 +44,7 @@ class AnalysisTemplates(Base):
 class EndpointMappings(Base):
     __tablename__ = "endpoint_mappings"
     id = Column(Integer, primary_key=True)
-    name = Column(String(512), nullable=False)
+    name = Column(String(512), nullable=False, unique=True)
     data = Column(Text, nullable=False)
     date = Column(DateTime(timezone=True), default=get_time)
 

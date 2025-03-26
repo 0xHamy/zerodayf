@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.database import get_db, EndpointMappings
 from sqlalchemy import select
 from datetime import datetime
-from typing import List
+import json
 
 endpoint_map_router = APIRouter(prefix="/endpoint-map", tags=["Endpoint Mapping"])
 
@@ -21,14 +21,45 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
                 "data": [
                     {
                         "id": m.id,
-                        "endpoint": m.endpoint,
-                        "code_file_paths": m.code_file_paths,
+                        "name": m.name,
+                        "data": m.data,  # This is JSON string
                         "date": m.date.isoformat(),
                         "scan_status": "completed"
                     }
                     for m in mappings
                 ]
             }
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)}
+        )
+
+@endpoint_map_router.post("/mappings")
+async def create_mapping(mapping: dict, db: AsyncSession = Depends(get_db)):
+    try:
+        # Validate JSON data
+        json_data = json.loads(mapping['data'])
+        
+        new_mapping = EndpointMappings(
+            name=mapping['name'],
+            data=json.dumps({
+                "framework": mapping['framework'],
+                "data": json_data
+            })
+        )
+        db.add(new_mapping)
+        await db.commit()
+        await db.refresh(new_mapping)
+        return JSONResponse(
+            status_code=201,
+            content={"status": "success", "id": new_mapping.id}
+        )
+    except json.JSONDecodeError:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Invalid JSON data"}
         )
     except Exception as e:
         return JSONResponse(
@@ -58,7 +89,6 @@ async def delete_mappings(mapping_ids: dict, db: AsyncSession = Depends(get_db))
             content={"status": "error", "message": str(e)}
         )
 
-
 @endpoint_map_router.get("/mappings/{mapping_id}")
 async def get_mapping_by_id(mapping_id: int, db: AsyncSession = Depends(get_db)):
     try:
@@ -78,8 +108,8 @@ async def get_mapping_by_id(mapping_id: int, db: AsyncSession = Depends(get_db))
                 "status": "success",
                 "data": {
                     "id": mapping.id,
-                    "endpoint": mapping.endpoint,
-                    "code_file_paths": mapping.code_file_paths,
+                    "name": mapping.name,
+                    "data": mapping.data,
                     "date": mapping.date.isoformat()
                 }
             }
@@ -89,5 +119,4 @@ async def get_mapping_by_id(mapping_id: int, db: AsyncSession = Depends(get_db))
             status_code=500,
             content={"status": "error", "message": str(e)}
         )
-
 

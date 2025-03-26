@@ -3,15 +3,254 @@
 {% block title %}Code Map{% endblock %}
 
 {% block css %}
+<style>
+    #mappings-table {
+        width: 100%;
+        table-layout: fixed;
+    }
 
+    #mappings-table th:nth-child(1),
+    #mappings-table td:nth-child(1) {
+        width: 40px;
+    }
+
+    #mappings-table th:nth-child(2) {
+        width: 30%;
+    }
+
+    #mappings-table th:nth-child(3) {
+        width: 30%;
+    }
+
+    #mappings-table th:nth-child(4) {
+        width: 40%;
+    }
+
+    .json-textarea {
+        height: 300px;
+        resize: vertical;
+        font-family: monospace;
+    }
+
+    .button-container {
+        margin-bottom: 15px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <h1 class="ui header page_header">Code Mappings</h1>
-<div class="ui segment">
-   
+
+<div class="button-container">
+    <button class="ui primary button" id="add-new-btn">Add New Data</button>
+    <button class="ui red button" id="delete-selected-btn" disabled>Delete Selected</button>
+    <button class="ui button" id="view-data-btn" disabled>View Data</button>
 </div>
 
+<div id="message-container" class="ui message hidden" style="margin-top: 1rem;"></div>
 
+<div class="ui segment">
+    <table class="ui celled table" id="mappings-table">
+        <thead>
+            <tr>
+                <th>
+                    <div class="ui checkbox">
+                        <input type="checkbox" id="select-all">
+                        <label></label>
+                    </div>
+                </th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Framework</th>
+            </tr>
+        </thead>
+        <tbody id="mappings-tbody"></tbody>
+    </table>
+</div>
+
+<!-- Add New Data Modal -->
+<div class="ui medium modal" id="add-data-modal">
+    <i class="close icon"></i>
+    <div class="header">Add New Mapping</div>
+    <div class="content">
+        <div class="ui form">
+            <div class="field">
+                <label>Name</label>
+                <input type="text" id="new-name" placeholder="Enter mapping name">
+            </div>
+            <div class="field">
+                <label>Framework</label>
+                <div class="ui selection dropdown" id="framework-dropdown">
+                    <input type="hidden" name="framework">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Select Framework</div>
+                    <div class="menu">
+                        <div class="item" data-value="flask">Flask</div>
+                        <div class="item" data-value="laravel">Laravel</div>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label>Data (JSON)</label>
+                <textarea id="new-data" placeholder='{"key": "value"}'></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">Cancel</div>
+        <div class="ui positive button" id="save-mapping">Save</div>
+    </div>
+</div>
+
+<!-- View Data Modal -->
+<div class="ui medium modal" id="view-data-modal">
+    <i class="close icon"></i>
+    <div class="header">View Mapping Data</div>
+    <div class="content">
+        <div class="ui form">
+            <div class="field">
+                <label>Name</label>
+                <input type="text" id="view-name" readonly>
+            </div>
+            <div class="field">
+                <label>Date</label>
+                <input type="text" id="view-date" readonly>
+            </div>
+            <div class="field">
+                <label>Data (JSON)</label>
+                <textarea class="json-textarea" id="view-json" readonly></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui black button">Close</div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Initialize dropdown
+        $('#framework-dropdown').dropdown();
+
+        // Load initial data
+        loadMappings();
+
+        // Add new button
+        $('#add-new-btn').click(function() {
+            $('#add-data-modal').modal('show');
+        });
+
+        // Save new mapping
+        $('#save-mapping').click(function() {
+            const name = $('#new-name').val();
+            const framework = $('#framework-dropdown').dropdown('get value');
+            const data = $('#new-data').val();
+
+            $.ajax({
+                url: '/endpoint-map/mappings',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ name, data, framework }),
+                success: function() {
+                    showMessage('success', 'Mapping added successfully');
+                    $('#add-data-modal').modal('hide');
+                    loadMappings();
+                },
+                error: function(xhr) {
+                    showMessage('error', xhr.responseJSON?.message || 'Error adding mapping');
+                }
+            });
+        });
+
+        // Select all checkbox
+        $('#select-all').change(function() {
+            const checked = this.checked;
+            $('#mappings-tbody .checkbox input').prop('checked', checked);
+            updateButtonStates();
+        });
+
+        // Delete selected
+        $('#delete-selected-btn').click(function() {
+            const selectedIds = [];
+            $('#mappings-tbody .checkbox input:checked').each(function() {
+                selectedIds.push($(this).data('id'));
+            });
+
+            if (selectedIds.length > 0) {
+                $.ajax({
+                    url: '/endpoint-map/mappings',
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ mapping_ids: selectedIds }),
+                    success: function() {
+                        showMessage('success', 'Mappings deleted successfully');
+                        loadMappings();
+                    },
+                    error: function(xhr) {
+                        showMessage('error', xhr.responseJSON?.message || 'Error deleting mappings');
+                    }
+                });
+            }
+        });
+
+        // View data
+        $('#view-data-btn').click(function() {
+            const selected = $('#mappings-tbody .checkbox input:checked');
+            if (selected.length === 1) {
+                const id = selected.data('id');
+                $.get(`/endpoint-map/mappings/${id}`, function(response) {
+                    if (response.status === 'success') {
+                        $('#view-name').val(response.data.name);
+                        $('#view-date').val(response.data.date);
+                        $('#view-json').val(JSON.stringify(JSON.parse(response.data.data), null, 2));
+                        $('#view-data-modal').modal('show');
+                    }
+                });
+            }
+        });
+    });
+
+    function loadMappings() {
+        $.get('/endpoint-map/mappings', function(response) {
+            if (response.status === 'success') {
+                const tbody = $('#mappings-tbody');
+                tbody.empty();
+                response.data.forEach(mapping => {
+                    const framework = JSON.parse(mapping.data).framework || 'N/A';
+                    tbody.append(`
+                        <tr>
+                            <td>
+                                <div class="ui checkbox">
+                                    <input type="checkbox" data-id="${mapping.id}">
+                                    <label></label>
+                                </div>
+                            </td>
+                            <td>${mapping.name}</td>
+                            <td>${mapping.date}</td>
+                            <td>${framework}</td>
+                        </tr>
+                    `);
+                });
+
+                // Initialize checkboxes and add change handlers
+                $('.ui.checkbox').checkbox();
+                $('#mappings-tbody .checkbox input').change(updateButtonStates);
+            }
+        });
+    }
+
+    function updateButtonStates() {
+        const checkedCount = $('#mappings-tbody .checkbox input:checked').length;
+        $('#delete-selected-btn').prop('disabled', checkedCount === 0);
+        $('#view-data-btn').prop('disabled', checkedCount !== 1);
+    }
+
+    function showMessage(type, message) {
+        const container = $('#message-container');
+        container.removeClass('hidden success error')
+            .addClass(type === 'success' ? 'success' : 'error')
+            .text(message);
+        setTimeout(() => container.addClass('hidden'), 3000);
+    }
+</script>
 {% endblock %}
