@@ -38,14 +38,19 @@
             <!-- Dashboard page -->
             <a class="item {{ 'active' if request.url.path == '/' }}" href="/">Dashboard</a>
 
-            <!-- Endpoint mapping -->
-            <a class="item {{ 'active' if request.url.path == '/endpoint-mapping' }}" href="/endpoint-mapping">Endpoint Mapping</a>
-
-            <!-- Code Analysis Dropdown -->
-            <div class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/code-map', '/code-analysis', '/analysis-templates'] }}">
-                Code Analysis <i class="dropdown icon"></i>
+            <!-- Endpoint mapping & code mapping -->
+            <div class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/code-map', '/endpoint-mapping'] }}">
+                Endpoint Mapping <i class="dropdown icon"></i>
                 <div class="menu">
                     <a class="item {{ 'active' if request.url.path == '/code-map' }}" href="/code-map">Code Map</a>
+                    <a class="item {{ 'active' if request.url.path == '/endpoint-mapping' }}" href="/endpoint-mapping">Endpoint Mapping</a>
+                </div>
+            </div>
+
+            <!-- Code Analysis Dropdown -->
+            <div class="ui simple dropdown item {{ 'highlighted' if request.url.path in ['/code-analysis', '/analysis-templates'] }}">
+                Code Analysis <i class="dropdown icon"></i>
+                <div class="menu">
                     <a class="item {{ 'active' if request.url.path == '/code-analysis' }}" href="/code-analysis">Code Analysis</a>
                     <a class="item {{ 'active' if request.url.path == '/analysis-templates' }}" href="/analysis-templates">Analysis Templates</a>
                 </div>
