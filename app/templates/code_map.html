@@ -3,119 +3,15 @@
 {% block title %}Code Map{% endblock %}
 
 {% block css %}
-<style>
-    .search-container {
-        margin-bottom: 20px;
-    }
 
-    .action-buttons {
-        margin-bottom: 20px;
-    }
-
-    .code-viewer {
-        font-family: monospace;
-        white-space: pre;
-        padding: 15px;
-        background: #f8f9fa;
-        height: 70vh;
-        overflow: auto;
-    }
-
-    .code-line {
-        font-family: monospace;
-        white-space: pre;
-    }
-
-    .line-num {
-        display: inline-block;
-        width: 40px;
-        color: #666;
-        user-select: none;
-    }
-
-    .highlighted-line {
-        background-color: #fff3b0;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
 <h1 class="ui header page_header">Code Mappings</h1>
 <div class="ui segment">
-    <div class="search-container">
-        <div class="ui fluid icon input">
-            <input type="text" id="search-input" placeholder="Search endpoints...">
-            <i class="search icon"></i>
-        </div>
-    </div>
-
-    <div class="action-buttons">
-        <button class="ui red button" id="delete-selected">Delete Selected</button>
-    </div>
-
-    <table class="ui celled table">
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="select-all"></th>
-                <th>ID</th>
-                <th>Endpoint</th>
-                <th>Actions</th>
-                <th>Scan Status</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody id="mappings-table-body"></tbody>
-    </table>
+   
 </div>
 
-<!-- Code Map Modal -->
-<div class="ui fullscreen modal" id="code-map-modal">
-    <i class="close icon"></i>
-    <div class="header" id="code-map-modal-title"></div>
-    <div class="content">
-
-        <div class="ui segment">
-            <div id="scan-message" class="ui message" style="display: none; margin-top: 10px;"></div>
-
-            <div class="ui input">
-                <input type="text" value="scan_name" id="scan-name" required>
-            </div>
-            <button class="ui primary button" id="analyze-selected" disabled>
-                Analyze Selected Files
-            </button>
-            <select class="ui dropdown" id="ai-template-dropdown">
-                <option value="">Select AI Template</option>
-            </select>
-            <select class="ui dropdown" id="semgrep-template-dropdown">
-                <option value="">Select Semgrep Rules</option>
-            </select>
-        </div>
-
-        <div class="ui top attached tabular menu">
-            <a class="active item" data-tab="files">Files</a>
-            <a class="item" data-tab="code-viewer">Code Viewer</a>
-        </div>
-
-        <div class="ui bottom attached active tab segment" data-tab="files">
-            <table class="ui celled table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="select-all-files"></th>
-                        <th>Type</th>
-                        <th>File Path</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="files-table-body"></tbody>
-            </table>
-        </div>
-
-        <div class="ui bottom attached tab segment" data-tab="code-viewer">
-            <div id="code-content" class="code-viewer"></div>
-        </div>
-    </div>
-</div>
-
-<script src="{{ static_url(request, 'js/code_map.js') }}"></script>
 
 {% endblock %}
