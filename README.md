@@ -1,17 +1,12 @@
+![Maintenance Notice](https://i.ibb.co/2YnRws44/image.png)
+
+**The repository is currently under maintenance, please come back later.**
+
 ![Project Logo](./app/static/image/dashboard.png)
 [![Version](https://shields.io/badge/version-0.6.0--beta-orange)]()
 [![Build Status](https://shields.io/badge/build-passing-green)]()
 [![License](https://shields.io/badge/license-MIT-blue)]()
 [![Status](https://shields.io/badge/status-beta-yellow)]()
-
-<svg width="600" height="50" xmlns="http://www.w3.org/2000/svg">
-  <!-- Red background -->
-  <rect width="600" height="50" fill="#FF0000"/>
-  <!-- White text, centered -->
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
-    The repository is currently under maintenance, please come back later.
-  </text>
-</svg>
 
 
 # 🌟 Introduction
