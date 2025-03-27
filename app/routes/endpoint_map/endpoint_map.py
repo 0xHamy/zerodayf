@@ -10,7 +10,7 @@ from threading import Thread
 import asyncio
 from typing import List, Dict, Any, Union
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
+from fastapi import BackgroundTasks
 from anthropic import Anthropic
 from huggingface_hub import InferenceClient
 
@@ -237,12 +237,12 @@ async def run_ai_scan(scan_data, template_data, db: AsyncSession):
 # --- Scan Routes ---
 
 @endpoint_map_router.post("/perform-analysis/semgrep")
-async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
+async def semgrep_scan_route(scan_data: dict, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     """Initiate a Semgrep scan in the background."""
     try:
         scan_name = scan_data.get("scan_name")
         files = scan_data.get("files", [])
-        template_id = scan_data.get("template")
+        template_id = int(scan_data.get("template"))
         if not files or not template_id:
             raise HTTPException(status_code=400, detail="Missing files or template")
         query = select(AnalysisTemplates).where(AnalysisTemplates.id == template_id)
@@ -250,26 +250,24 @@ async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)
         template = result.scalar_one_or_none()
         if not template or template.template_type != "semgrep":
             raise HTTPException(status_code=404, detail="Semgrep template not found or invalid type")
-        Thread(target=lambda: asyncio.run(run_semgrep_scan(scan_data, template.data, db))).start()
+        background_tasks.add_task(run_semgrep_scan, scan_data, template.data, db)
         return JSONResponse(
             status_code=200,
             content={"status": "success", "message": "Semgrep scan initiated"}
         )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid template ID: must be an integer")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error initiating Semgrep scan: {str(e)}")
 
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 @endpoint_map_router.post("/perform-analysis/ai")
-async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
+async def ai_scan_route(scan_data: dict, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     """Initiate an AI scan in the background."""
     try:
         scan_name = scan_data.get("scan_name")
         files = scan_data.get("files", [])
-        template_id = int(scan_data.get("template"))  # Convert string to integer
+        template_id = int(scan_data.get("template"))
         if not files or not template_id:
             raise HTTPException(status_code=400, detail="Missing files or template")
         query = select(AnalysisTemplates).where(AnalysisTemplates.id == template_id)
@@ -277,7 +275,8 @@ async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
         template = result.scalar_one_or_none()
         if not template or template.template_type != "ai":
             raise HTTPException(status_code=404, detail="AI template not found or invalid type")
-        Thread(target=lambda: asyncio.run(run_ai_scan(scan_data, template.data, db))).start()
+        # Add the task to run in the background within the same event loop
+        background_tasks.add_task(run_ai_scan, scan_data, template.data, db)
         return JSONResponse(
             status_code=200,
             content={"status": "success", "message": "AI scan initiated"}
