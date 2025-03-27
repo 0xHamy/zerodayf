@@ -253,7 +253,7 @@ $(document).ready(function () {
 
     // Function to initiate a scan
     function initiateScan(type, templateId, scanData) {
-        const endpoint = `/analysis/perform-analysis/${type}`;
+        const endpoint = `/endpoint-map/perform-analysis/${type}`;
         const data = { ...scanData, template: templateId };
         showMessage('success', `${type === 'ai' ? 'AI' : 'Semgrep'} scan initiated`);
         $.ajax({

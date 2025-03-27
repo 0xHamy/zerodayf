@@ -236,7 +236,7 @@ async def run_ai_scan(scan_data, template_data, db: AsyncSession):
 
 # --- Scan Routes ---
 
-@endpoint_map_router.post("/analysis/perform-analysis/semgrep")
+@endpoint_map_router.post("/perform-analysis/semgrep")
 async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
     """Initiate a Semgrep scan in the background."""
     try:
@@ -259,13 +259,17 @@ async def semgrep_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=500, detail=f"Error initiating Semgrep scan: {str(e)}")
 
 
-@endpoint_map_router.post("/analysis/perform-analysis/ai")
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+@endpoint_map_router.post("/perform-analysis/ai")
 async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
     """Initiate an AI scan in the background."""
     try:
         scan_name = scan_data.get("scan_name")
         files = scan_data.get("files", [])
-        template_id = scan_data.get("template")
+        template_id = int(scan_data.get("template"))  # Convert string to integer
         if not files or not template_id:
             raise HTTPException(status_code=400, detail="Missing files or template")
         query = select(AnalysisTemplates).where(AnalysisTemplates.id == template_id)
@@ -278,6 +282,8 @@ async def ai_scan_route(scan_data: dict, db: AsyncSession = Depends(get_db)):
             status_code=200,
             content={"status": "success", "message": "AI scan initiated"}
         )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid template ID: must be an integer")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error initiating AI scan: {str(e)}")
 
