@@ -68,7 +68,8 @@ async def manage_api(request: Request):
 async def usage(request: Request):
     return templates.TemplateResponse("usage.html", {"request": request})
 
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 @app.get("/analysis/report/{scan_uid}")
 async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = Depends(get_db)):
@@ -85,12 +86,15 @@ async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = De
 
         if scan.scan_type == "ai":
             formatted_result = markdown.markdown(scan.scan_result)
+        
+
         elif scan.scan_type == "semgrep":
             try:
+                logging.debug(f"Raw scan_result: {scan.scan_result}")
                 cleaned_json = scan.scan_result.replace('\n', '\\n').replace('\t', '\\t')
                 scan_result_json = json.loads(cleaned_json)
+                logging.debug(f"Parsed scan_result_json: {scan_result_json}")
                 
-                # Check if "results" key exists and group findings by path 
                 if "results" in scan_result_json:
                     findings = scan_result_json["results"]
                     grouped_findings = {}
@@ -104,9 +108,11 @@ async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = De
                             }
                         grouped_findings[path]["results"].append(finding)
                     formatted_result = list(grouped_findings.values())
+                    logging.debug(f"Formatted result: {formatted_result}")
                 else:
                     formatted_result = []
             except (json.JSONDecodeError, KeyError) as e:
+                logging.error(f"JSON error: {str(e)}")
                 formatted_result = {"error": f"Invalid Semgrep JSON: {str(e)}"}
 
         return templates.TemplateResponse(

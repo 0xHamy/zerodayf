@@ -351,8 +351,21 @@ async def send_request_to_provider(content: str, db: AsyncSession = Depends(get_
 
 
 async def scan_code_with_semgrep(codes_and_paths: List[Dict[str, str]], rules: Union[str, List[str]]) -> Dict[str, List[Dict[str, Any]]]:
-    """Run Semgrep scans on multiple code snippets and return simplified results."""
+    """
+    Run Semgrep scans on multiple code snippets asynchronously and return simplified results.
+
+    Args:
+        codes_and_paths: List of dictionaries, each containing 'code' (str) and 'path' (str).
+        rules: Either a single rule string or a list of rule strings for Semgrep.
+
+    Returns:
+        A dictionary with a 'results' key containing a list of scan results.
+
+    Raises:
+        HTTPException: If an error occurs during execution.
+    """
     try:
+        # Prepare Semgrep command based on rules
         if isinstance(rules, list):
             config_args = []
             for rule in rules:
@@ -361,23 +374,23 @@ async def scan_code_with_semgrep(codes_and_paths: List[Dict[str, str]], rules: U
             config_args = ["--config", rules]
         base_cmd = ["semgrep", *config_args, "--json", "-"]
 
-        def run_semgrep(code: str):
-            process = subprocess.Popen(
-                base_cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+        # Async helper to run Semgrep on a single code snippet
+        async def run_semgrep_async(code: str) -> tuple[bytes, bytes, int]:
+            process = await asyncio.create_subprocess_exec(
+                *base_cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
-            stdout, stderr = process.communicate(code.encode('utf-8'))
+            stdout, stderr = await process.communicate(input=code.encode('utf-8'))
             return stdout, stderr, process.returncode
 
+        # Process a single code snippet and format results
         async def process_single_code(entry: Dict[str, str]) -> List[Dict[str, Any]]:
             code = entry["code"]
             path = entry["path"]
-            with ThreadPoolExecutor() as executor:
-                stdout, stderr, returncode = await asyncio.get_event_loop().run_in_executor(
-                    executor, lambda: run_semgrep(code)
-                )
+            stdout, stderr, returncode = await run_semgrep_async(code)
+
             if stdout:
                 try:
                     full_results = json.loads(stdout.decode('utf-8'))
@@ -392,6 +405,7 @@ async def scan_code_with_semgrep(codes_and_paths: List[Dict[str, str]], rules: U
                             "cwe": result.get("extra", {}).get("metadata", {}).get("cwe", [])
                         }
                         simplified_results.append(simplified_result)
+                    # If no issues found, return a "no issues" result
                     if not simplified_results:
                         simplified_results.append({
                             "path": path,
@@ -408,9 +422,11 @@ async def scan_code_with_semgrep(codes_and_paths: List[Dict[str, str]], rules: U
                 stderr_text = stderr.decode('utf-8') if stderr else "No error message provided"
                 return [{"path": path, "code": code.strip(), "error": f"Semgrep failed: {stderr_text}"}]
 
+        # Run all scans concurrently
         tasks = [process_single_code(entry) for entry in codes_and_paths]
         results_per_code = await asyncio.gather(*tasks, return_exceptions=True)
 
+        # Combine results into a single list
         combined_results = []
         for result in results_per_code:
             if isinstance(result, list):
@@ -424,4 +440,3 @@ async def scan_code_with_semgrep(codes_and_paths: List[Dict[str, str]], rules: U
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=f"Error running Semgrep scans: {str(e)}")
-

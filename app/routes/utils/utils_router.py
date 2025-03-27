@@ -151,6 +151,7 @@ def wrap_code(code, max_width=100):
     
     return "\n".join(wrapped_lines)
 
+
 def generate_markdown(scan_result):
     """
     Convert Semgrep JSON scan results to a Markdown string with sensible wrapping.
@@ -181,6 +182,7 @@ def generate_markdown(scan_result):
         md += f"**CWE:** {', '.join(result['cwe'])}\n\n"
         md += "---\n\n"
     return md
+
 
 @util_router.get("/download-report/semgrep/{uid}")
 async def download_semgrep_report(
