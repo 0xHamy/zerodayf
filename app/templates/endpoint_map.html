@@ -15,7 +15,6 @@
         margin-bottom: 15px;
     }
 
-    /* Route table styling */
     #route-table {
         width: 100%;
         table-layout: fixed;
@@ -23,12 +22,17 @@
 
     #route-table th:nth-child(1),
     #route-table td:nth-child(1) {
-        width: 40px;  /* Reduced width for checkbox column */
+        width: 40px;
     }
 
     #route-table th:nth-child(2),
     #route-table td:nth-child(2) {
-        width: auto;  /* Let endpoint column take remaining space */
+        width: auto;
+    }
+
+    #route-table th:nth-child(3),
+    #route-table td:nth-child(3) {
+        width: 100px;
     }
 
     #route-table td:nth-child(2) {
@@ -60,7 +64,11 @@
     }
 
     .search-input {
-        width: 300px; 
+        width: 300px;
+    }
+
+    .highlight {
+        background-color: khaki;
     }
 </style>
 {% endblock %}
@@ -70,6 +78,9 @@
 <p>From this page, you can load endpoint mappings and perform code analysis on specific endpoints.</p>
 
 <div class="ui divider"></div>
+
+<!-- Message Container -->
+<div id="message-container" class="ui message hidden" style="margin-top: 1rem;"></div>
 
 <!-- Search Bar and Dropdown -->
 <div class="search-container">
@@ -82,24 +93,20 @@
         <input type="hidden" name="endpoint-data">
         <i class="dropdown icon"></i>
         <div class="default text">Select Endpoint Data</div>
-        <div class="menu">
-            <div class="item" data-value="endpoint1">Endpoints_data1</div>
-            <div class="item" data-value="endpoint2">Endpoints_data2</div>
-            <div class="item" data-value="endpoint3">Endpoints_data3</div>
-        </div>
+        <div class="menu"></div>
     </div>
     
     <button class="ui violet button" id="load-endpoints">Load Endpoints</button>
 </div>
 
-<!-- Map Button -->
+<!-- Map Button (kept as is, disabled for now) -->
 <div class="button-container">
     <button class="ui primary button" id="map-button" disabled>
         Map Selected Endpoints
     </button>
 </div>
 
-<!-- Route Table -->
+<!-- Endpoint Table -->
 <table class="ui celled table" id="route-table">
     <thead>
         <tr>
@@ -110,12 +117,62 @@
                 </div>
             </th>
             <th>Endpoint</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody></tbody>
 </table>
 
-<!-- Mapping Modal -->
+<!-- View Endpoint Modal -->
+<div class="ui modal" id="view-endpoint-modal">
+    <i class="close icon"></i>
+    <div class="header">
+        Endpoint: <span id="endpoint-title"></span>
+    </div>
+    <div class="content">
+        <div class="ui top attached tabular menu">
+            <a class="item active" data-tab="files">Files</a>
+            <a class="item" data-tab="code">Code</a>
+        </div>
+        <div class="ui bottom attached tab segment active" data-tab="files">
+            <div class="ui form">
+                <div class="field">
+                    <label>Select Template</label>
+                    <div class="ui selection dropdown" id="template-dropdown">
+                        <input type="hidden" name="template">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">Select Template</div>
+                        <div class="menu"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="ui primary button" id="perform-analysis" disabled>Perform Analysis</button>
+            <table class="ui celled table" id="files-table">
+                <thead>
+                    <tr>
+                        <th class="collapsing">
+                            <div class="ui checkbox">
+                                <input type="checkbox" id="select-all-files">
+                                <label></label>
+                            </div>
+                        </th>
+                        <th>File Path</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="ui bottom attached tab segment" data-tab="code">
+            <pre id="code-content"></pre>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">Close</div>
+    </div>
+</div>
+
+<!-- Mapping Modal (kept as is from original) -->
 <div class="ui modal" id="mapping-modal">
     <i class="close icon"></i>
     <div class="header">
@@ -124,10 +181,8 @@
     <div class="content">
         <div class="ui segment">
             <h4 class="ui header">Selected Endpoints</h4>
-            <div class="ui ordered list" id="selected-endpoints-list">
-            </div>
+            <div class="ui ordered list" id="selected-endpoints-list"></div>
         </div>
-
         <div class="ui form mapping-form">
             <div class="field">
                 <label>Framework</label>
@@ -141,7 +196,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="field">
                 <label>Application Root Path</label>
                 <input type="text" id="app-path" placeholder="/path/to/your/application">
@@ -149,29 +203,199 @@
         </div>
     </div>
     <div class="actions">
-        <div class="ui black deny button">
-            Cancel
-        </div>
-        <div class="ui positive button" id="begin-mapping" disabled>
-            Begin Mapping
-        </div>
+        <div class="ui black deny button">Cancel</div>
+        <div class="ui positive button" id="begin-mapping" disabled>Begin Mapping</div>
     </div>
 </div>
 
 <script>
-    // Initialize Semantic UI dropdowns
+    // Initialize Semantic UI components
     $('#endpoint-dropdown').dropdown();
     $('#framework-dropdown').dropdown();
+    $('#template-dropdown').dropdown({
+        onChange: function(value) {
+            updatePerformAnalysisButton();
+        }
+    });
+    $('.tabular.menu .item').tab();
+
+    // Fetch mappings and populate dropdown on page load
+    fetch('/endpoint-map/select-mapping')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const dropdown = $('#endpoint-dropdown');
+                dropdown.find('.menu').empty();
+                data.data.forEach(mapping => {
+                    dropdown.find('.menu').append(`<div class="item" data-value="${mapping.id}">${mapping.name}</div>`);
+                });
+                dropdown.dropdown('refresh');
+            } else {
+                showMessage('error', 'Failed to load mappings');
+            }
+        })
+        .catch(error => showMessage('error', 'Error fetching mappings: ' + error));
 
     // Load endpoints button click handler
     $('#load-endpoints').on('click', function() {
-        const selectedEndpoint = $('#endpoint-dropdown').dropdown('get text');
-        if (selectedEndpoint && selectedEndpoint !== 'Select Endpoint Data') {
-            alert('Loading: ' + selectedEndpoint);
-        } else {
-            alert('Please select an endpoint first');
+        const selectedId = $('#endpoint-dropdown').dropdown('get value');
+        if (!selectedId) {
+            showMessage('error', 'Please select a mapping first');
+            return;
         }
+        fetch(`/endpoint-map/mappings/${selectedId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    populateEndpointsTable(JSON.parse(data.data.data));
+                    showMessage('success', 'Endpoints loaded successfully');
+                } else {
+                    showMessage('error', 'Failed to load mapping data');
+                }
+            })
+            .catch(error => showMessage('error', 'Error fetching mapping data: ' + error));
     });
+
+    // Populate endpoints table
+    function populateEndpointsTable(endpointsData) {
+        const tableBody = $('#route-table tbody');
+        tableBody.empty();
+        Object.keys(endpointsData).forEach(endpoint => {
+            const row = `
+                <tr>
+                    <td>
+                        <div class="ui checkbox">
+                            <input type="checkbox" class="endpoint-checkbox">
+                            <label></label>
+                        </div>
+                    </td>
+                    <td>${endpoint}</td>
+                    <td>
+                        <button class="ui button view-button" data-endpoint="${endpoint}">View</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+        $('.view-button').on('click', function() {
+            const endpoint = $(this).data('endpoint');
+            openViewModal(endpoint, endpointsData[endpoint]);
+        });
+        $('#select-all').on('change', function() {
+            const checked = $(this).prop('checked');
+            $('.endpoint-checkbox').prop('checked', checked);
+        });
+    }
+
+    // Open view modal
+    function openViewModal(endpoint, endpointData) {
+        $('#endpoint-title').text(endpoint);
+        populateFilesTable(endpointData);
+        fetchAnalysisTemplates();
+        $('#view-endpoint-modal').modal('show');
+    }
+
+    // Populate files table in modal
+    function populateFilesTable(endpointData) {
+        const tableBody = $('#files-table tbody');
+        tableBody.empty();
+        if (endpointData.view_func) {
+            tableBody.append(createFileRow('view_func', endpointData.view_func));
+        }
+        if (endpointData.template && endpointData.template !== 'none') {
+            tableBody.append(createFileRow('template', endpointData.template));
+        }
+        if (endpointData.api_functions) {
+            Object.entries(endpointData.api_functions).forEach(([api, file]) => {
+                tableBody.append(createFileRow(`api_function: ${api}`, file));
+            });
+        }
+        $('#select-all-files').on('change', function() {
+            const checked = $(this).prop('checked');
+            $('#files-table .file-checkbox').prop('checked', checked);
+            updatePerformAnalysisButton();
+        });
+        $('#files-table .file-checkbox').on('change', updatePerformAnalysisButton);
+    }
+
+    // Create a file row for the files table
+    function createFileRow(fileType, filePath) {
+        const [path, lineRange] = filePath.split('#');
+        const [start, end] = lineRange ? lineRange.split('-').map(Number) : [null, null];
+        return `
+            <tr>
+                <td>
+                    <div class="ui checkbox">
+                        <input type="checkbox" class="file-checkbox" data-file="${filePath}">
+                        <label></label>
+                    </div>
+                </td>
+                <td>${fileType}: ${path}</td>
+                <td>
+                    <button class="ui button view-file-button" data-file="${path}" data-start="${start}" data-end="${end}">View</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    // Fetch and populate analysis templates
+    function fetchAnalysisTemplates() {
+        fetch('/endpoint-map/analysis-templates')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const dropdown = $('#template-dropdown');
+                    dropdown.find('.menu').empty();
+                    data.data.forEach(template => {
+                        dropdown.find('.menu').append(`<div class="item" data-value="${template.id}">${template.name}</div>`);
+                    });
+                    dropdown.dropdown('refresh');
+                } else {
+                    showMessage('error', 'Failed to load analysis templates');
+                }
+            })
+            .catch(error => showMessage('error', 'Error fetching analysis templates: ' + error));
+    }
+
+    // View file contents
+    $(document).on('click', '.view-file-button', function() {
+        const filePath = $(this).data('file');
+        const startLine = $(this).data('start');
+        const endLine = $(this).data('end');
+        fetch(`/endpoint-map/file-contents?file_path=${encodeURIComponent(filePath)}&start_line=${startLine}&end_line=${endLine}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    $('#code-content').html(data.data.content);
+                    $('.tabular.menu .item').tab('change tab', 'code');
+                } else {
+                    showMessage('error', 'Failed to load file contents');
+                }
+            })
+            .catch(error => showMessage('error', 'Error fetching file contents: ' + error));
+    });
+
+    // Update Perform Analysis button state
+    function updatePerformAnalysisButton() {
+        const filesSelected = $('#files-table .file-checkbox:checked').length > 0;
+        const templateSelected = $('#template-dropdown').dropdown('get value') !== '';
+        $('#perform-analysis').prop('disabled', !(filesSelected && templateSelected));
+    }
+
+    // Perform Analysis button handler
+    $('#perform-analysis').on('click', function() {
+        const endpoint = $('#endpoint-title').text();
+        showMessage('success', `Analysis started for ${endpoint}`);
+        $('#view-endpoint-modal').modal('hide');
+    });
+
+    // Show message in message container
+    function showMessage(type, message) {
+        const container = $('#message-container');
+        container.removeClass('hidden positive negative');
+        container.addClass(type === 'success' ? 'positive' : 'negative');
+        container.text(message);
+    }
 </script>
-<script src="{{ static_url(request, 'js/route_log.js') }}"></script>
+<script src="{{ static_url(request, 'js/endpoint_map.js') }}"></script>
 {% endblock %}

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Json
 
 endpoint_map_router = APIRouter(prefix="/endpoint-map", tags=["Endpoint Mapping"])
 
+# For displaying all mappings 
 @endpoint_map_router.get("/mappings")
 async def get_mappings(db: AsyncSession = Depends(get_db)):
     try:
@@ -24,8 +25,7 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
                         "id": m.id,
                         "name": m.name,
                         "data": m.data,
-                        "date": m.date.isoformat(),
-                        "scan_status": "completed"
+                        "date": m.date.isoformat()
                     }
                     for m in mappings
                 ]
@@ -40,6 +40,19 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
 class MappingCreate(BaseModel):
     name: str
     data: Json 
+
+
+# For selecting individual mappings:
+@endpoint_map_router.get("/select-mapping")
+async def select_mapping(db: AsyncSession = Depends(get_db)):
+    try:
+        query = select(EndpointMappings.id, EndpointMappings.name)
+        result = await db.execute(query)
+        mappings = result.all()
+        return {"status": "success", "data": [{"id": m.id, "name": m.name} for m in mappings]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @endpoint_map_router.post("/mappings")
@@ -124,3 +137,59 @@ async def get_mapping_by_id(mapping_id: int, db: AsyncSession = Depends(get_db))
             content={"status": "error", "message": str(e)}
         )
 
+@endpoint_map_router.get("/mappings/{mapping_id}")
+async def get_mapping_by_id(mapping_id: int, db: AsyncSession = Depends(get_db)):
+    try:
+        query = select(EndpointMappings).where(EndpointMappings.id == mapping_id)
+        result = await db.execute(query)
+        mapping = result.scalar_one_or_none()
+        if not mapping:
+            raise HTTPException(status_code=404, detail="Mapping not found")
+        return {
+            "status": "success",
+            "data": {
+                "id": mapping.id,
+                "name": mapping.name,
+                "data": mapping.data, 
+                "date": mapping.date.isoformat()
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@endpoint_map_router.get("/analysis-templates")
+async def get_analysis_templates(db: AsyncSession = Depends(get_db)):
+    try:
+        query = select(AnalysisTemplates.id, AnalysisTemplates.name)
+        result = await db.execute(query)
+        templates = result.all()
+        return {"status": "success", "data": [{"id": t.id, "name": t.name} for t in templates]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@endpoint_map_router.get("/file-contents")
+async def get_file_contents(file_path: str, start_line: int, end_line: int):
+    try:
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+            if start_line < 1 or end_line > len(lines) or start_line > end_line:
+                raise HTTPException(status_code=400, detail="Invalid line range")
+            highlighted_content = []
+            for i, line in enumerate(lines, start=1):
+                escaped_line = html.escape(line)
+                if start_line <= i <= end_line:
+                    highlighted_content.append(f'<span class="highlight">{escaped_line}</span>')
+                else:
+                    highlighted_content.append(escaped_line)
+            return {
+                "status": "success",
+                "data": {
+                    "content": ''.join(highlighted_content)
+                }
+            }
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
