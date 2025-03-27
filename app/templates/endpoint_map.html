@@ -154,6 +154,7 @@
     <tbody></tbody>
 </table>
 
+
 <!-- View Endpoint Modal -->
 <div class="ui fullscreen modal" id="view-endpoint-modal">
     <i class="close icon"></i>
@@ -169,11 +170,22 @@
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
                 <div class="ui form" style="flex: 1;">
                     <div class="field">
-                        <label>Select Template</label>
-                        <div class="ui selection dropdown" id="template-dropdown">
-                            <input type="hidden" name="template">
+                        <label>Select AI Template</label>
+                        <div class="ui selection dropdown" id="ai-template-dropdown">
+                            <input type="hidden" name="ai-template">
                             <i class="dropdown icon"></i>
-                            <div class="default text">Select Template</div>
+                            <div class="default text">Select AI Template</div>
+                            <div class="menu"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui form" style="flex: 1;">
+                    <div class="field">
+                        <label>Select Semgrep Template</label>
+                        <div class="ui selection dropdown" id="semgrep-template-dropdown">
+                            <input type="hidden" name="semgrep-template">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">Select Semgrep Template</div>
                             <div class="menu"></div>
                         </div>
                     </div>
@@ -196,7 +208,6 @@
                 <tbody></tbody>
             </table>
         </div>
-
         <!-- Code Tab -->
         <div class="ui bottom attached tab segment" data-tab="code">
             <div class="code-container" style="display: flex;">

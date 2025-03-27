@@ -1,12 +1,14 @@
-$(document).ready(function() {
-// Initialize Semantic UI components
+$(document).ready(function () {
+    // Initialize Semantic UI components
     $('#endpoint-dropdown').dropdown();
     $('#framework-dropdown').dropdown();
-    $('#template-dropdown').dropdown({
-        onChange: function(value) {
-            updatePerformAnalysisButton();
-        }
+    $('#ai-template-dropdown').dropdown({
+        onChange: updatePerformAnalysisButton
     });
+    $('#semgrep-template-dropdown').dropdown({
+        onChange: updatePerformAnalysisButton
+    });
+
     $('.tabular.menu .item').tab();
 
     // Fetch mappings and populate dropdown on page load
@@ -28,7 +30,7 @@ $(document).ready(function() {
         .catch(error => showMessage('error', 'Error fetching mappings: ' + error));
 
     // Load endpoints button click handler
-    $('#load-endpoints').on('click', function() {
+    $('#load-endpoints').on('click', function () {
         const selectedId = $('#endpoint-dropdown').dropdown('get value');
         if (!selectedId) {
             showMessage('error', 'Please select a mapping first');
@@ -68,11 +70,11 @@ $(document).ready(function() {
             `;
             tableBody.append(row);
         });
-        $('.view-button').on('click', function() {
+        $('.view-button').on('click', function () {
             const endpoint = $(this).data('endpoint');
             openViewModal(endpoint, endpointsData[endpoint]);
         });
-        $('#select-all').on('change', function() {
+        $('#select-all').on('change', function () {
             const checked = $(this).prop('checked');
             $('.endpoint-checkbox').prop('checked', checked);
         });
@@ -101,7 +103,7 @@ $(document).ready(function() {
                 tableBody.append(createFileRow(`api_function: ${api}`, file));
             });
         }
-        $('#select-all-files').on('change', function() {
+        $('#select-all-files').on('change', function () {
             const checked = $(this).prop('checked');
             $('#files-table .file-checkbox').prop('checked', checked);
             updatePerformAnalysisButton();
@@ -137,13 +139,20 @@ $(document).ready(function() {
             .then(data => {
                 console.log('Templates data:', data);
                 if (data.status === 'success') {
-                    const dropdown = $('#template-dropdown');
-                    dropdown.find('.menu').empty();
+                    const aiDropdown = $('#ai-template-dropdown');
+                    const semgrepDropdown = $('#semgrep-template-dropdown');
+                    aiDropdown.find('.menu').empty();
+                    semgrepDropdown.find('.menu').empty();
                     data.data.forEach(template => {
-                        dropdown.find('.menu').append(
-                            `<div class="item" data-value="${template.id}">${template.name}</div>`);
+                        const item = `<div class="item" data-value="${template.id}">${template.name}</div>`;
+                        if (template.type === 'ai') {
+                            aiDropdown.find('.menu').append(item);
+                        } else if (template.type === 'semgrep') {
+                            semgrepDropdown.find('.menu').append(item);
+                        }
                     });
-                    dropdown.dropdown('refresh');
+                    aiDropdown.dropdown('refresh');
+                    semgrepDropdown.dropdown('refresh');
                 } else {
                     showMessage('error', 'Failed to load analysis templates');
                 }
@@ -152,13 +161,14 @@ $(document).ready(function() {
     }
 
     // View file contents with line numbers and highlighting
-    $(document).on('click', '.view-file-button', function() {
+    $(document).on('click', '.view-file-button', function () {
         const filePath = $(this).data('file');
-        const startLine = parseInt($(this).data('start')) || 1; // Default to 1 if NaN
-        const endLine = parseInt($(this).data('end')) || Infinity; // Default to Infinity if NaN
+        const startLine = parseInt($(this).data('start')) || 1;
+        const endLine = parseInt($(this).data('end')) || Infinity;
         console.log('Viewing file:', filePath, 'from line', startLine, 'to', endLine);
 
-        const url = `/endpoint-map/file-contents?file_path=${encodeURIComponent(filePath)}&start_line=${startLine}&end_line=${endLine}`;
+        const url =
+            `/endpoint-map/file-contents?file_path=${encodeURIComponent(filePath)}&start_line=${startLine}&end_line=${endLine}`;
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -175,14 +185,15 @@ $(document).ready(function() {
             .catch(error => showMessage('error', 'Error fetching file contents: ' + error));
     });
 
-    // Function to add line numbers and highlighting mints
+    // Function to add line numbers and highlighting
     function addLineNumbers(fullCode, start = 1, end = Infinity) {
         const lines = fullCode.split('\n');
         return lines.map((text, idx) => {
             const lineNum = idx + 1;
             const isHighlighted = lineNum >= start && lineNum <= end;
             let lineHtml = `<span class="line-num">${lineNum}</span> `;
-            lineHtml += isHighlighted ? `<span class="highlighted-line">${escapeHtml(text)}</span>` : `<span>${escapeHtml(text)}</span>`;
+            lineHtml += isHighlighted ? `<span class="highlighted-line">${escapeHtml(text)}</span>` :
+                `<span>${escapeHtml(text)}</span>`;
             return `<div class="code-line">${lineHtml}</div>`;
         }).join('');
     }
@@ -200,16 +211,65 @@ $(document).ready(function() {
     // Update Perform Analysis button state
     function updatePerformAnalysisButton() {
         const filesSelected = $('#files-table .file-checkbox:checked').length > 0;
-        const templateSelected = $('#template-dropdown').dropdown('get value') !== '';
-        $('#perform-analysis').prop('disabled', !(filesSelected && templateSelected));
+        const aiSelected = $('#ai-template-dropdown').dropdown('get value') !== '';
+        const semgrepSelected = $('#semgrep-template-dropdown').dropdown('get value') !== '';
+        const hasSelectedTemplate = aiSelected || semgrepSelected;
+        $('#perform-analysis').prop('disabled', !(filesSelected && hasSelectedTemplate));
     }
 
     // Perform Analysis button handler
-    $('#perform-analysis').on('click', function() {
-        const endpoint = $('#endpoint-title').text();
-        showMessage('success', `Analysis started for ${endpoint}`);
+    $('#perform-analysis').on('click', function () {
+        const selectedFiles = $('#files-table .file-checkbox:checked').map(function () {
+            return { path: $(this).data('file') };
+        }).get();
+
+        const aiTemplateId = $('#ai-template-dropdown').dropdown('get value');
+        const semgrepTemplateId = $('#semgrep-template-dropdown').dropdown('get value');
+
+        if (selectedFiles.length === 0) {
+            showMessage('error', 'Please select at least one file');
+            return;
+        }
+
+        if (!aiTemplateId && !semgrepTemplateId) {
+            showMessage('error', 'Please select at least one template (AI or Semgrep)');
+            return;
+        }
+
+        const scanData = {
+            scan_name: `Analysis for endpoint ${$('#endpoint-title').text()}`,
+            files: selectedFiles
+        };
+
+        if (aiTemplateId) {
+            initiateScan('ai', aiTemplateId, scanData);
+        }
+        if (semgrepTemplateId) {
+            initiateScan('semgrep', semgrepTemplateId, scanData);
+        }
+
         $('#view-endpoint-modal').modal('hide');
     });
+
+    // Function to initiate a scan
+    function initiateScan(type, templateId, scanData) {
+        const endpoint = `/analysis/perform-analysis/${type}`;
+        const data = { ...scanData, template: templateId };
+        showMessage('success', `${type === 'ai' ? 'AI' : 'Semgrep'} scan initiated`);
+        $.ajax({
+            url: endpoint,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (response) {
+                console.log(`${type} scan request success:`, response);
+            },
+            error: function (xhr, status, error) {
+                console.error(`${type} scan request error:`, error);
+                showMessage('error', `Error initiating ${type} scan: ${error}`);
+            }
+        });
+    }
 
     // Show message in message container
     function showMessage(type, message) {
@@ -217,5 +277,8 @@ $(document).ready(function() {
         container.removeClass('hidden positive negative');
         container.addClass(type === 'success' ? 'positive' : 'negative');
         container.text(message);
+        setTimeout(() => {
+            container.addClass('hidden');
+        }, 5000);
     }
 });
