@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.database import get_db, EndpointMappings
+from app.models.database import get_db, EndpointMappings, AnalysisTemplates
+from fastapi import HTTPException
 from sqlalchemy import select
 from datetime import datetime
-import json
+import json, html
 from pydantic import BaseModel, Json
 
 endpoint_map_router = APIRouter(prefix="/endpoint-map", tags=["Endpoint Mapping"])
@@ -170,26 +171,22 @@ async def get_analysis_templates(db: AsyncSession = Depends(get_db)):
 
 
 @endpoint_map_router.get("/file-contents")
-async def get_file_contents(file_path: str, start_line: int, end_line: int):
+async def get_file_contents(file_path: str, start_line: int = None, end_line: int = None):
     try:
         with open(file_path, 'r') as file:
-            lines = file.readlines()
-            if start_line < 1 or end_line > len(lines) or start_line > end_line:
-                raise HTTPException(status_code=400, detail="Invalid line range")
-            highlighted_content = []
-            for i, line in enumerate(lines, start=1):
-                escaped_line = html.escape(line)
-                if start_line <= i <= end_line:
-                    highlighted_content.append(f'<span class="highlight">{escaped_line}</span>')
-                else:
-                    highlighted_content.append(escaped_line)
+            content = file.read()
+            total_lines = content.count('\n') + 1
             return {
                 "status": "success",
                 "data": {
-                    "content": ''.join(highlighted_content)
+                    "content": content,
+                    "start_line": start_line if start_line is not None else 1,
+                    "end_line": end_line if end_line is not None else total_lines
                 }
             }
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
