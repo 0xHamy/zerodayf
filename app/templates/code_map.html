@@ -69,6 +69,7 @@
                     </div>
                 </th>
                 <th>Name</th>
+                <th>Application root path</th>
                 <th>Date</th>
             </tr>
         </thead>
@@ -85,6 +86,10 @@
             <div class="field">
                 <label>Name</label>
                 <input type="text" id="new-name" placeholder="Enter mapping name">
+            </div>
+            <div class="field">
+                <label>Application root path</label>
+                <input type="text" id="app-path" placeholder="/path/to/app"> 
             </div>
             <div class="field">
                 <label>Data (JSON)</label>
@@ -107,6 +112,10 @@
             <div class="field">
                 <label>Name</label>
                 <input type="text" id="view-name" readonly>
+            </div>
+            <div class="field">
+                <label>Application root path</label>
+                <input type="text" id="view-app-path" readonly>
             </div>
             <div class="field">
                 <label>Date</label>
@@ -152,6 +161,7 @@
         // Save new mapping
         $('#save-mapping').click(function() {
             const name = $('#new-name').val();
+            const app_path = $('#app-path').val();
             const data = $('#new-data').val();
 
             $.ajax({
@@ -160,6 +170,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({
                     name,
+                    app_path,
                     data
                 }),
                 success: function() {
@@ -216,6 +227,7 @@
                 $.get(`/endpoint-map/mappings/${id}`, function(response) {
                     if (response.status === 'success') {
                         $('#view-name').val(response.data.name);
+                        $('#view-app-path').val(response.data.app_path);
                         $('#view-date').val(new Date(response.data.date).toLocaleString()); 
                         try {
                             const jsonData = JSON.parse(response.data.data);
@@ -250,6 +262,7 @@
                                 </div>
                             </td>
                             <td>${mapping.name}</td>
+                            <td>${mapping.app_path}</td>
                             <td>${new Date(mapping.date).toLocaleString()}</td> 
                         </tr>
                     `);

@@ -33,6 +33,7 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
                     {
                         "id": m.id,
                         "name": m.name,
+                        "app_path": m.app_path,
                         "data": m.data,
                         "date": m.date.isoformat()
                     }
@@ -49,6 +50,7 @@ async def get_mappings(db: AsyncSession = Depends(get_db)):
 
 class MappingCreate(BaseModel):
     name: str
+    app_path: str
     data: Json
 
 
@@ -70,6 +72,7 @@ async def create_mapping(mapping: MappingCreate, db: AsyncSession = Depends(get_
     try:
         new_mapping = EndpointMappings(
             name=mapping.name,
+            app_path=mapping.app_path,
             data=json.dumps(mapping.data)
         )
         db.add(new_mapping)
@@ -118,6 +121,7 @@ async def get_mapping_by_id(mapping_id: int, db: AsyncSession = Depends(get_db))
             "data": {
                 "id": mapping.id,
                 "name": mapping.name,
+                "app_path": mapping.app_path,
                 "data": mapping.data,
                 "date": mapping.date.isoformat()
             }
