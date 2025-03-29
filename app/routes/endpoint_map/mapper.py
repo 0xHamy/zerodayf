@@ -3,6 +3,22 @@ import re
 import os
 
 class EndpointAnalyzer:
+    """Class to analyze and map API endpoints from a JSON string. It opens template files, normalizes paths, and extracts API calls.
+    It then creates another JSON object with the mapping of API calls to their respective endpoints.
+    The JSON string should be in the format:
+    {
+    "/static/<path:filename>": {
+        "method": ["GET", "HEAD", "OPTIONS"],
+        "view_func": "/home/hamy/microblog/venv/lib/python3.12/site-packages/flask/app.py#257-257",
+        "template": "none"
+    },
+    "/auth/login": {
+        "method": ["GET", "HEAD", "OPTIONS", "POST"],
+        "view_func": "/home/hamy/microblog/app/auth/routes.py#14-30",
+        "template": "/home/hamy/microblog/app/templates/auth/login.html#1-12"
+    },
+    }
+    """
     def __init__(self, json_string):
         self.data = json.loads(json_string)
         # Regex patterns for API calls
@@ -132,10 +148,3 @@ class EndpointAnalyzer:
         print("\nFinished processing all endpoints.")
         return json.dumps(self.data)
 
-# Test JSON with some funky paths
-json_string = ''''''
-
-analyzer = EndpointAnalyzer(json_string)
-result = analyzer.process()
-print("\nFinal JSON output:")
-print(result)

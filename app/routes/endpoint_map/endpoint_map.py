@@ -4,15 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.database import get_db, EndpointMappings, AnalysisTemplates, CodeScans, APIKey
 from sqlalchemy import select
 from datetime import datetime
-import json, time, openai
 from pydantic import BaseModel, Json
 from threading import Thread
-import asyncio
+import asyncio, os, subprocess, json, time, openai
 from typing import List, Dict, Any, Union
-import subprocess
 from fastapi import BackgroundTasks
 from anthropic import Anthropic
 from huggingface_hub import InferenceClient
+from .mapper import EndpointAnalyzer
 
 endpoint_map_router = APIRouter(prefix="/endpoint-map", tags=["Endpoint Mapping"])
 
@@ -66,18 +65,37 @@ async def select_mapping(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
 @endpoint_map_router.post("/mappings")
 async def create_mapping(mapping: MappingCreate, db: AsyncSession = Depends(get_db)):
     """Create a new endpoint mapping."""
+    logger.info("Starting create_mapping endpoint for name: %s", mapping.name)
     try:
+        logger.debug("Initializing EndpointAnalyzer with json_string: %s", mapping.data)
+        analyzer = EndpointAnalyzer(json.dumps(mapping.data))
+        logger.debug("Processing data with EndpointAnalyzer")
+        endpoints_data = analyzer.process()
+        logger.debug("EndpointAnalyzer processed data: %s", endpoints_data)
+        
+        logger.debug("Creating new EndpointMappings object with name=%s, app_path=%s",
+                    mapping.name, mapping.app_path)
         new_mapping = EndpointMappings(
             name=mapping.name,
-            app_path=mapping.app_path,
-            data=json.dumps(mapping.data)
+            app_path=os.path.normpath(mapping.app_path),
+            data=endpoints_data
         )
+        logger.debug("Adding new_mapping to database session")
         db.add(new_mapping)
+        logger.debug("Committing database transaction")
         await db.commit()
+        logger.debug("Refreshing new_mapping from database")
         await db.refresh(new_mapping)
+        
+        logger.info("Successfully created mapping with id: %s", new_mapping.id)
         return JSONResponse(
             status_code=201,
             content={
@@ -86,7 +104,16 @@ async def create_mapping(mapping: MappingCreate, db: AsyncSession = Depends(get_
                 "message": "Mapping created successfully"
             }
         )
+    except json.JSONDecodeError as e:
+        logger.error("JSONDecodeError occurred: %s", str(e))
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=f"Invalid JSON data: {str(e)}")
+    except FileNotFoundError as e:
+        logger.error("FileNotFoundError occurred: %s", str(e))
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=f"Template file not found: {str(e)}")
     except Exception as e:
+        logger.exception("Unexpected error in create_mapping: %s", str(e))
         await db.rollback()
         raise HTTPException(status_code=500, detail={"status": "error", "message": str(e)})
 
