@@ -76,7 +76,7 @@ async def create_mapping(mapping: MappingCreate, db: AsyncSession = Depends(get_
     logger.info("Starting create_mapping endpoint for name: %s", mapping.name)
     try:
         logger.debug("Initializing EndpointAnalyzer with json_string: %s", mapping.data)
-        analyzer = EndpointAnalyzer(json.dumps(mapping.data))
+        analyzer = EndpointAnalyzer(json.dumps(mapping.data), mapping.app_path)
         logger.debug("Processing data with EndpointAnalyzer")
         endpoints_data = analyzer.process()
         logger.debug("EndpointAnalyzer processed data: %s", endpoints_data)
