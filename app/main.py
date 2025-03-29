@@ -9,7 +9,8 @@ from .routes.utils.utils_router import util_router
 from .routes.code_analysis.analysis_router import analysis_router
 from .models.database import create_tables, get_db, AsyncSession, CodeScans
 from sqlalchemy.future import select 
-import os, json, markdown
+import os, json, bleach
+from markdown import markdown
 
 app = FastAPI()
 
@@ -85,10 +86,29 @@ async def analysis_report(scan_uid: str, request: Request, db: AsyncSession = De
         formatted_result = None
 
         if scan.scan_type == "ai":
-            formatted_result = markdown.markdown(scan.scan_result)
-        
-
+            # Convert Markdown to HTML
+            html_content = markdown(scan.scan_result)
+            # Define allowed tags and attributes
+            allowed_tags = [
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'ul', 'ol', 'li',
+                'table', 'thead', 'tbody', 'tr', 'th', 'td', 'code', 'pre', 'blockquote'
+            ]
+            allowed_attributes = {
+                'a': ['href', 'title'],
+                'img': ['src', 'alt', 'title'],
+                'table': ['border', 'class'],
+                'td': ['class'],
+                'th': ['class']
+            }
+            # Sanitize the HTML
+            formatted_result = bleach.clean(
+                html_content,
+                tags=allowed_tags,
+                attributes=allowed_attributes,
+                strip=True  # Remove disallowed tags instead of escaping them
+            )
         elif scan.scan_type == "semgrep":
+            # [Existing Semgrep logic remains unchanged]
             try:
                 logging.debug(f"Raw scan_result: {scan.scan_result}")
                 cleaned_json = scan.scan_result.replace('\n', '\\n').replace('\t', '\\t')
