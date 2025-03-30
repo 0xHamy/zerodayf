@@ -1,114 +1,123 @@
 # Contributing to Zerodayf
 
-Thank you for your interest in contributing to Zerodayf! We're particularly focused on expanding framework support to make our tool more accessible to a wider range of developers and security researchers.
+Thank you for your interest in contributing to Zerodayf! We're particularly focused on expanding adding more mappers to make our tool more accessible to a wider range of developers and security researchers.
 
 ## Priority Contribution Areas
+You can contribute by adding support for additional LLVM APIs and creating endpoint mappers.
 
-### Framework Support
-Currently, Zerodayf supports Flask applications. We welcome contributions to add support for additional frameworks, including:
+### Mappers
+The following is an endpoint mapper that works with Flask debugger console:
+```py
+import inspect, re, os, json, importlib; json.dumps({str(rule): {'method': sorted(list(rule.methods)) if rule.methods else [], 'view_func': (f := func) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) or f) or f) and f"{inspect.getfile(f)}#{(sl := inspect.getsourcelines(f)[1])}-{(sl + len(inspect.getsourcelines(f)[0]) - 1)}" or 'No view function', 'template': (m := re.search(r'render_template\s*\(\s*[\'\"]([^\'\"]+\.(?:html|jsx|ts|j2|twig))[\'\"]', inspect.getsource(f))) and (template_name := m.group(1)) and (search_paths := [os.path.join(os.path.dirname(importlib.import_module(bp.import_name).__file__), bp.template_folder), os.path.join(app.root_path, app.template_folder)] if (bp_name := rule.endpoint.split('.')[0] if '.' in rule.endpoint else None) and (bp := app.blueprints.get(bp_name)) and bp.template_folder else [os.path.join(app.root_path, app.template_folder)]) and (tp := next((os.path.join(sp, template_name) for sp in search_paths if os.path.exists(os.path.join(sp, template_name))), None)) and f'{tp}#1-{len(open(tp).readlines())}' or 'none'} for rule in app.url_map.iter_rules() if (func := app.view_functions.get(rule.endpoint))})
+```
 
-- Express.js
-- Spring Boot
-- Laravel
-- Ruby on Rails
-- ASP.NET Core
-- Django
+It has a simple task: map endpoints to their backend code & templates. Here is a mode readable version of the mapper:
+```py
+import inspect, re, os, json, importlib
+
+# The result will be a dictionary that gets converted to JSON
+result = {
+    str(rule): {
+        # Key 'method': Get and sort the HTTP methods associated with the rule/endpoint
+        # If rule.methods exists, convert to a sorted list; otherwise, use an empty list
+        'method': sorted(list(rule.methods)) if rule.methods else [],
+        
+        # Key 'view_func': Determine the source file and line numbers of the view function
+        'view_func': (
+            # Assign the view function to 'f' using the walrus operator
+            (f := func) and
+            # Check if the function is from site-packages or venv and has a __wrapped__ attribute
+            # This handles decorated functions by attempting to unwrap them
+            (
+                ('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and
+                hasattr(f, '__wrapped__') and
+                # Unwrap the function once if conditions are met
+                (f := f.__wrapped__) and
+                # Check again for a second level of wrapping
+                (
+                    ('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and
+                    hasattr(f, '__wrapped__') and
+                    # Unwrap the function a second time if conditions persist
+                    (f := f.__wrapped__)
+                    # If second unwrap fails, keep the current 'f'
+                    or f
+                )
+                # If first unwrap conditions fail, keep the original 'f'
+                or f
+            ) and
+            # After unwrapping (if any), get the file path and line numbers
+            # Format as "file_path#start_line-end_line"
+            f"{inspect.getfile(f)}#{ (sl := inspect.getsourcelines(f)[1]) }-{ (sl + len(inspect.getsourcelines(f)[0]) - 1) }"
+            # If any part fails (e.g., func is None or inspection fails), return this string
+            or 'No view function'
+        ),
+        
+        # Key 'template': Identify and locate the template file used by the view function
+        'template': (
+            # Search the function's source code for a render_template call
+            # Capture the template name with specific extensions (html, jsx, ts, j2, twig)
+            (m := re.search(r'render_template\s*\(\s*[\'\"]([^\'\"]+\.(?:html|jsx|ts|j2|twig))[\'\"]', inspect.getsource(f))) and
+            # Extract the template name from the regex match
+            (template_name := m.group(1)) and
+            # Determine the search paths for the template file
+            (search_paths := 
+                # If the endpoint suggests a blueprint, include its template folder
+                [
+                    os.path.join(os.path.dirname(importlib.import_module(bp.import_name).__file__), bp.template_folder),
+                    os.path.join(app.root_path, app.template_folder)
+                ] if (
+                    # Split the endpoint to check for a blueprint name
+                    (bp_name := rule.endpoint.split('.')[0] if '.' in rule.endpoint else None) and
+                    # Get the blueprint object if it exists
+                    (bp := app.blueprints.get(bp_name)) and
+                    # Check if the blueprint has a template folder
+                    bp.template_folder
+                ) else
+                # Otherwise, use only the app's template folder
+                [os.path.join(app.root_path, app.template_folder)]
+            ) and
+            # Find the first existing template file in the search paths
+            (tp := next(
+                (os.path.join(sp, template_name) for sp in search_paths if os.path.exists(os.path.join(sp, template_name))),
+                None
+            )) and
+            # If a template file is found, return its path and line count
+            f'{tp}#1-{len(open(tp).readlines())}'
+            # If any step fails (e.g., no match, file not found), return 'none'
+            or 'none'
+        )
+    }
+    # Iterate over all rules in the Flask app's URL map
+    for rule in app.url_map.iter_rules()
+    # Filter to include only rules with a defined view function
+    if (func := app.view_functions.get(rule.endpoint))
+}
+
+# Convert the resulting dictionary to a JSON string
+json_output = json.dumps(result)
+```
+
+In zerodayf 0.5.0, I performed this by searching for the endpoint definition inside project's root directory recursively. But I understood later on that people have been using Flask in ways that were not standardized so I came up with a better solution. 
+
+While this step helps in mapping any type of Flask app, the downside is that you need access to the debugger of the web app. If you are a penetration tester, you would need to run the web app in debug mode to access the debugger console. Debugging is something developers do during the development process to weed out bugs but it has other use cases too. 
 
 
-### Adding Framework Support
-To add support for a new framework:
+### Additional AI support
+Currently Zerodayf supports all LLVM models provided by Anthropic, OpenAI & HuggingFace. That's a lot of models but not enough, here are some more you could help us add:
+- Gemeni (Google)
+- Grok (xAI)
 
-1. **Study the Current Implementation**
-   - Examine how Flask support is implemented
-   - Understand the proxy interception and code mapping logic
-   - Review how route handlers are identified and processed
-
-2. **Framework-Specific Requirements**
-   - Implement route mapping for the target framework
-   - Add support for framework-specific template handling
-   - Ensure proper handling of API endpoints
-   - Implement middleware/interceptor integration
-   - Add support for framework-specific dependency injection patterns
-
-3. **Understanding Inspector Architecture**
-   Each framework requires an inspector that performs scans and returns standardized JSON output. To understand the expected output format:
-
-   - Visit `/proxy/stream-logs` endpoint while the proxy is running
-   - Observe the JSON structure returned during active scans
-   - Use this as a template for your inspector implementation
-
-4. **Creating a New Inspector**
-   - Navigate to `zerodayf/app/proxy/inspectors/`
-   - Study `flask_inspector.py` as a reference implementation
-   - Create a new inspector file for your framework
-   - Ensure your inspector returns JSON matching the established format
-
-5. **Testing Requirements**
-   - Create example applications using the target framework
-   - Write unit tests for new components
-   - Add integration tests for proxy functionality
-   - Document test cases and expected behavior
-   - Verify JSON output matches expected format
-
-The key to successful framework integration is ensuring your inspector returns the correct JSON structure. The existing Flask inspector provides a complete reference implementation that you can use as a template.
+To add support for another API model, you would only need to modify the following files:
+- manage_api.html
+- api_manage.py
+- api_router.py (rarely, depends)
 
 
-## Development Process
+That's it.
 
-1. **Before Starting**
-   - Check existing issues and pull requests
-   - Create an issue discussing your planned implementation
-   - Wait for maintainer feedback before starting major work
 
-2. **Development Guidelines**
-   - Follow the existing code style and patterns
-   - Maintain comprehensive documentation
-   - Include comments explaining complex logic
-   - Add appropriate error handling
-   - Ensure backward compatibility
+To get started with making a contribution, simply create a GitHub issue and I will make the changes while crediting you.
 
-3. **Pull Request Process**
-   - Create a feature branch for your changes
-   - Make focused, atomic commits
-   - Update documentation as needed
-   - Add tests for new functionality
-   - Submit a pull request with a clear description
+I think this is much easier to do than asking you to setup the whole thing and make a push request. 
 
-## Code Quality Requirements
 
-- Maintain consistent code style
-- Add appropriate type hints and docstrings
-- Include error handling for edge cases
-- Write clear, maintainable code
-- Follow security best practices
-
-## Documentation Requirements
-
-When adding support for a new framework, please include:
-
-- Setup instructions
-- Configuration options
-- Usage examples
-- Common troubleshooting steps
-- Framework-specific limitations
-- Performance considerations
-
-## Getting Help
-
-- Join our development discussions in GitHub Issues
-- Ask questions in pull requests
-- Review existing framework implementations
-- Contact maintainers for guidance
-
-## Development Setup
-
-1. Fork the repository
-2. Clone your fork
-3. Install development dependencies
-4. Create a new branch for your feature
-5. Make your changes
-6. Submit a pull request
-
-We look forward to your contributions in making Zerodayf support a broader range of frameworks and technologies. Your efforts will help make security analysis more accessible to developers across different technology stacks.
-
-For questions or clarifications, please open an issue or reach out to the maintainers.
