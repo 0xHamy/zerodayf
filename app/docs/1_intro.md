@@ -1,5 +1,5 @@
 # Introduction
-Zerodayf (Zeroday Factory) is an advanced code analysis platform that leverages artificial intelligence to identify vulnerabilities within source code. 
+Zerodayf (Zeroday Factory) is an advanced code analysis platform that leverages artificial intelligence & Semgrep-OSS to identify vulnerabilities within source web apps written with any major backend framework such as Flask, Laravel, Rails, ASP.NET Core and others. 
 
 The system differentiates itself by offering a flexible approach to code analysis, enabling security professionals and developers to utilize their preferred AI models for comprehensive code evaluation beyond traditional vulnerability detection.
 
@@ -10,23 +10,16 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 ---
 
 
+The new version of zerodayf works with any framework, as long as you can produce the JSON data required, the framework doesn't matter. 
+
+
 ## Features
-1. Raw proxy logging & beautified logging
-2. Capturing start and end line ranges for mapped code
-3. Viewing code and highlighting affected code
-4. Ability to create multiple custom scan templates
-5. Ability to add multiple APIs 
-6. Ability to analyse a select number of code files of your choice
-7. Ability to view running, completed & failed scans 
-8. All scans are saved in the database so you can retain past progress
-9. Map Ajax/Fetch API calls in templates to backend API code 
+1. Ability to perform analysis on any type of framework 
+2. Map endpoints (e.g. `/login`) to backend code
+3. Map API calls inside templates & .js files to backend endpoints & code 
+4. Works with any major template such as .jsx, .html, .ts and others
+5. 
 
-
-
-## Limitions
-1. At the moment only web apps developed with Flask is supported
-2. You can only add HuggingFace and OpenAI APIs
-3. When inspector is mapping routes to backend code files, you may not be able to browse others page, zerodayf might look like it's freezing, it's just intended issue because requests are being processed in the background and you can't use the web app until the background tasks completesss
 
 ---
 
