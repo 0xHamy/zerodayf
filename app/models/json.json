@@ -1,142 +1,290 @@
 {
-    "/static/<path:filename>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/venv/lib/python3.12/site-packages/flask/app.py#278-278",
-        "template": "none"
-    },
-    "/assets/<path:filename>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/venv/lib/python3.12/site-packages/flask/blueprints.py#82-102",
-        "template": "none"
-    },
-    "/": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#13-15",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/home.html#1-83"
-    },
-    "/blog": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#18-21",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/blog.html#1-77"
-    },
-    "/open-source": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#24-27",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/open_source.html#1-106"
-    },
-    "/vulnerability-research": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#30-33",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/vuln_rd.html#1-72"
-    },
-    "/whoami": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#36-38",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/whoami.html#1-208"
-    },
-    "/project/<int:project_id>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#41-44",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/./pages/project.html#1-170"
-    },
-    "/vulnerability/<int:vuln_id>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#47-50",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/./pages/vulnerability.html#1-149"
-    },
-    "/blog/<int:blog_id>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#53-56",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/./pages/blog.html#1-40"
-    },
-    "/dummy_api": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#58-60",
-        "template": "none"
-    },
-    "/admin/login": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#57-102",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/login.html#1-57"
-    },
-    "/admin/dashboard": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#108-111",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/dashboard.html#1-9"
-    },
-    "/admin/open-source": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#117-123",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/manage_opensource.html#1-154"
-    },
-    "/admin/open-source/delete/<int:post_id>": {
-        "method": ["OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#126-140",
-        "template": "none"
-    },
-    "/admin/open-source/edit": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#147-255",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/pages/edit_opensource.html#1-357"
-    },
-    "/admin/open-source/edit/<int:post_id>": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#147-255",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/pages/edit_opensource.html#1-357"
-    },
-    "/admin/vulnerability": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#264-273",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/manage_vulnerability.html#1-164"
-    },
-    "/admin/vulnerability/edit": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#279-407",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/pages/edit_vulnerability.html#1-459"
-    },
-    "/admin/vulnerability/edit/<int:vuln_id>": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#279-407",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/pages/edit_vulnerability.html#1-459"
-    },
-    "/admin/vulnerability/delete/<int:vuln_id>": {
-        "method": ["OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#414-427",
-        "template": "none"
-    },
-    "/admin/blog": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#433-442",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/manage_blog.html#1-154"
-    },
-    "/admin/blog/delete/<int:post_id>": {
-        "method": ["OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#449-462",
-        "template": "none"
-    },
-    "/admin/blog/edit": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#468-515",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/pages/edit_blog.html#1-63"
-    },
-    "/admin/blog/edit/<int:post_id>": {
-        "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#468-515",
-        "template": "/home/hamy/hkohi.ca/admin/backend/../templates/pages/edit_blog.html#1-63"
-    },
-    "/admin/logout": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#521-525",
-        "template": "none"
-    },
-    "/uploads/<path:filename>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/app.py#30-32",
-        "template": "none"
-    },
-    "/files/<path:filename>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/app.py#35-40",
-        "template": "none"
+  "/static/<path:filename>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/venv/lib/python3.12/site-packages/flask/app.py#278-278",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/assets/<path:filename>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/venv/lib/python3.12/site-packages/flask/blueprints.py#82-102",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#13-15",
+    "template": "/home/hamy/hkohi.ca/public/templates/home.html#1-83",
+    "api_functions": {}
+  },
+  "/blog": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#18-21",
+    "template": "/home/hamy/hkohi.ca/public/templates/blog.html#1-77",
+    "api_functions": {
+      "/dummy_api": "/home/hamy/hkohi.ca/public/backend/views.py#58-60"
     }
+  },
+  "/open-source": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#24-27",
+    "template": "/home/hamy/hkohi.ca/public/templates/open_source.html#1-101",
+    "api_functions": {
+      "/dummy_api": "/home/hamy/hkohi.ca/public/backend/views.py#58-60"
+    }
+  },
+  "/vulnerability-research": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#30-33",
+    "template": "/home/hamy/hkohi.ca/public/templates/vuln_rd.html#1-72",
+    "api_functions": {}
+  },
+  "/whoami": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#36-38",
+    "template": "/home/hamy/hkohi.ca/public/templates/whoami.html#1-208",
+    "api_functions": {}
+  },
+  "/project/<int:project_id>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#41-44",
+    "template": "/home/hamy/hkohi.ca/public/templates/pages/project.html#1-170",
+    "api_functions": {}
+  },
+  "/vulnerability/<int:vuln_id>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#47-50",
+    "template": "/home/hamy/hkohi.ca/public/templates/pages/vulnerability.html#1-149",
+    "api_functions": {}
+  },
+  "/blog/<int:blog_id>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#53-56",
+    "template": "/home/hamy/hkohi.ca/public/templates/pages/blog.html#1-40",
+    "api_functions": {}
+  },
+  "/dummy_api": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#58-60",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/admin/login": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#57-102",
+    "template": "/home/hamy/hkohi.ca/admin/templates/login.html#1-57",
+    "api_functions": {}
+  },
+  "/admin/dashboard": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#108-111",
+    "template": "/home/hamy/hkohi.ca/admin/templates/dashboard.html#1-9",
+    "api_functions": {}
+  },
+  "/admin/open-source": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#117-123",
+    "template": "/home/hamy/hkohi.ca/admin/templates/manage_opensource.html#1-154",
+    "api_functions": {}
+  },
+  "/admin/open-source/delete/<int:post_id>": {
+    "method": [
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#126-140",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/admin/open-source/edit": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#147-255",
+    "template": "/home/hamy/hkohi.ca/admin/templates/pages/edit_opensource.html#1-357",
+    "api_functions": {}
+  },
+  "/admin/open-source/edit/<int:post_id>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#147-255",
+    "template": "/home/hamy/hkohi.ca/admin/templates/pages/edit_opensource.html#1-357",
+    "api_functions": {}
+  },
+  "/admin/vulnerability": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#264-273",
+    "template": "/home/hamy/hkohi.ca/admin/templates/manage_vulnerability.html#1-164",
+    "api_functions": {}
+  },
+  "/admin/vulnerability/edit": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#279-407",
+    "template": "/home/hamy/hkohi.ca/admin/templates/pages/edit_vulnerability.html#1-459",
+    "api_functions": {}
+  },
+  "/admin/vulnerability/edit/<int:vuln_id>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#279-407",
+    "template": "/home/hamy/hkohi.ca/admin/templates/pages/edit_vulnerability.html#1-459",
+    "api_functions": {}
+  },
+  "/admin/vulnerability/delete/<int:vuln_id>": {
+    "method": [
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#414-427",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/admin/blog": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#433-442",
+    "template": "/home/hamy/hkohi.ca/admin/templates/manage_blog.html#1-154",
+    "api_functions": {}
+  },
+  "/admin/blog/delete/<int:post_id>": {
+    "method": [
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#449-462",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/admin/blog/edit": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#468-515",
+    "template": "/home/hamy/hkohi.ca/admin/templates/pages/edit_blog.html#1-63",
+    "api_functions": {}
+  },
+  "/admin/blog/edit/<int:post_id>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#468-515",
+    "template": "/home/hamy/hkohi.ca/admin/templates/pages/edit_blog.html#1-63",
+    "api_functions": {}
+  },
+  "/admin/logout": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/admin/backend/views.py#521-525",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/uploads/<path:filename>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/app.py#30-32",
+    "template": "none",
+    "api_functions": {}
+  },
+  "/files/<path:filename>": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/app.py#35-40",
+    "template": "none",
+    "api_functions": {}
+  }
 }

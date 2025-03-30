@@ -43,6 +43,41 @@ import inspect, re, os, json, importlib; json.dumps({str(rule): {'method': sorte
 For other frameworks this is going to be different. For more on mappers, please visit [Frameworks](./4_frameworks.md) page.
 
 
+## Endpoint mapping through zerodayf
+Once you get the required JSON string, you can add it by navigating to `/code-map` and adding data. Before your JSON string is saved to the database, every template inside it is analyzed for API calls either inside the template or inside .js files imported by the template. 
+
+The final JSON string may look something like this:
+```json
+{
+  "/blog": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#18-21",
+    "template": "/home/hamy/hkohi.ca/public/templates/blog.html#1-77",
+    "api_functions": {
+      "/dummy_api": "/home/hamy/hkohi.ca/public/backend/views.py#58-60"
+    }
+  },
+  "/open-source": {
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#24-27",
+    "template": "/home/hamy/hkohi.ca/public/templates/open_source.html#1-101",
+    "api_functions": {
+      "/dummy_api": "/home/hamy/hkohi.ca/public/backend/views.py#58-60"
+    }
+  },
+}
+```
+
+Zerodayf maps API calls to endpoints. 
+
 
 ## Analysis Templates
 You can create templates by navigating to `/analysis-templates` page. If you don't know what they may look like, use the buttons on top right to load default templates. 

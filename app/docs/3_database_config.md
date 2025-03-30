@@ -1,51 +1,83 @@
 # Database Management Guide
 
 ## Overview
-Zerodayf includes a streamlined database management script for local development and testing purposes. This utility script provides straightforward commands for creating and resetting database tables.
+Zerodayf includes a streamlined database management script for local development and testing purposes. This utility script provides straightforward commands for creating and resetting database tables. 
 
-## Location
-The database management script is located at:
+The database management script is located at: `zerodayf/app/models/manage_db.py`
+
+### Usage
+You can use it by running it either with reset or create arguments to drop tables or create them:
 ```
-zerodayf/app/models/manage_db.py
-```
-
-## Implementation
-The script provides an asynchronous implementation for database operations:
-
-```python
-import asyncio
-from database import create_tables, empty_tables
-
-async def main(action: str):
-    if action == "create":
-        await create_tables()
-    elif action == "reset":
-        await empty_tables()
-    else:
-        raise ValueError("Use 'create' or 'reset'")
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2:
-        print("Usage: python manage_db.py [create|reset]")
-        sys.exit(1)
-    
-    asyncio.run(main(sys.argv[1]))
+python3 manage_db.py reset
+python3 manage_db.py create
 ```
 
-## Usage Instructions
-The script accepts two commands:
+## PostgreSQL database
+To store data, zerodayf uses PostgreSQL, in `database.py`, we have the following variable:
+```py
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://postgres:postgres@localhost/zerodayf"
+)
+```
 
-1. Create tables:
-   ```
-   python manage_db.py create
-   ```
+Run the following script to setup postgresql with user postgres:
+```bash
+#!/bin/bash
 
-2. Reset (empty) tables:
-   ```
-   python manage_db.py reset
-   ```
+# Exit on any error
+set -e
 
-If an invalid command is provided, the script will display usage instructions and exit with a status code of 1.
+# Update package list
+echo "Updating package list..."
+sudo apt update -y
 
-This utility ensures consistent database management across local development environments and simplifies the process of setting up or resetting the application's database state for testing purposes.
+# Install PostgreSQL and contrib package for additional utilities
+echo "Installing PostgreSQL..."
+sudo apt install -y postgresql postgresql-contrib
+
+# Start PostgreSQL service
+echo "Starting PostgreSQL service..."
+sudo systemctl start postgresql
+
+# Enable PostgreSQL to start on boot
+echo "Enabling PostgreSQL to start on boot..."
+sudo systemctl enable postgresql
+
+# Switch to the default postgres user and configure
+echo "Setting up PostgreSQL user and database..."
+sudo -u postgres psql <<EOF
+-- Set password for the postgres user
+ALTER USER postgres WITH PASSWORD 'postgres';
+
+-- Create the zerodayf database
+CREATE DATABASE zerodayf;
+
+-- Grant all privileges on zerodayf to postgres user (optional, since postgres is superuser)
+GRANT ALL PRIVILEGES ON DATABASE zerodayf TO postgres;
+
+-- Exit psql
+\q
+EOF
+
+# Verify the database creation
+echo "Verifying database creation..."
+sudo -u postgres psql -c "\l" | grep zerodayf
+
+# Restart PostgreSQL to apply changes
+echo "Restarting PostgreSQL service..."
+sudo systemctl restart postgresql
+
+# Check PostgreSQL status
+echo "Checking PostgreSQL status..."
+sudo systemctl status postgresql --no-pager
+
+echo "PostgreSQL setup complete!"
+echo "User: postgres, Password: postgres, Database: zerodayf"
+echo "To connect: psql -U postgres -d zerodayf"
+```
+
+Save this as setup_db.sh, give it permissions with `chmod +x setup_db.sh` and run it: `./setup_db.sh`. 
+
+Remember that running postgresql as postgres user is insecure in production. 
+
