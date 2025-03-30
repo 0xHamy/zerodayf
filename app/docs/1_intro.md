@@ -52,17 +52,6 @@ Zerodayf operates through a systematic workflow that enables comprehensive code 
 
 ---
 
-1. **Configuration and Integration**: The user establishes Zerodayf's proxy configuration to integrate with their web browser for traffic interception.
-2. **Source Code Access**: The user grants Zerodayf read-level access to the web application's source code repository, enabling analysis capabilities.
-3. **Route Navigation**: The user navigates through various application endpoints (e.g., /admin/dashboard, /posts/delete/1, /login?redirect=/dashboard), initiating normal web traffic.
-4. **Code Mapping**: Zerodayf's proxy service intercepts these requests and creates a comprehensive mapping between the accessed routes and their corresponding backend components, including server-side code and template files.
-5. **API Integration Analysis**: The system identifies and maps any client-side API calls made through Ajax or Fetch, establishing connections between frontend requests and their backend handlers.
-6. **AI-Powered Analysis**: Upon completing the mapping process, users can direct the collected code segments to their preferred AI model for vulnerability assessment and analysis.
-
-This structured approach ensures thorough coverage of the application's codebase while maintaining flexibility in the choice of analysis tools.
-
----
-
 ## Accessibility and Configuration Options
 Zerodayf provides comprehensive flexibility through its customizable configuration framework. The platform offers the following key capabilities:
 1. **AI Model Selection**

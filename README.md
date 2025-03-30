@@ -37,34 +37,28 @@ Please watch the following demo to understand usage:
 ![Demo](./app/docs/zerodayf-demo.gif)
 
 ## ✨ Features
-1. Raw proxy logging & beautified logging
-2. Capturing start and end line ranges for mapped code
-3. Viewing code and highlighting affected code
-4. Ability to create multiple custom scan templates
-5. Ability to add multiple APIs 
-6. Ability to analyse a select number of code files of your choice
-7. Ability to view running, completed & failed scans 
-8. All scans are saved in the database so you can retain past progress
-9. Map Ajax/Fetch API calls in templates to backend API code 
+1. Perform analysis on any type of framework 
+2. Map endpoints (e.g. `/login`) to backend code
+3. Map API calls inside templates & .js files imported by the template to backend endpoints & code 
+4. Works with any major template such as .jsx, .html, .ts and others
+5. Save endpoint mappings to a database table to keep track of them 
+6. Load any endpoint mapping for vulnerability analysis
+7. Perform AI, Semgrep analysis individually or combined
+8. View code file, start & end line ranges will be highlighted to show relevant code for clarity
+9. Create as many analysis templates as you want to look for different types of vulnerabilities or design flaws 
+10. View analysis reports, download reports as PDF, HTML & Markdown for different application 
 
 
 
 ## 📚 Documentation
 1. [Introduction](./app/docs/1_intro.md)
-2. [Getting started](./app/docs/2_getting_started.md)
-3. [Database config](./app/docs/3_database_config.md)
-4. [Frameworks](./app/docs/4_frameworks.md)
-5. [Contribute](./app/docs/6_contribute.md)
-6. [Terms of Service](./app/docs/7_terms_of_service.md)
+2. [Installation](./app/docs/2_installation.md)
+3. [Getting started](./app/docs/3_getting_started.md)
+4. [Database config](./app/docs/4_database_config.md)
+5. [Frameworks](./app/docs/5_frameworks.md)
+6. [Contribute](./app/docs/6_contribute.md)
+7. [Terms of Service](./app/docs/7_terms_of_service.md)
 
 ## 🛡️ Security
 To report security vulnerabilities within Zerodayf, please read [SECURITY.md](./SECURITY.md).
-
-
-# 🤝 Acknowledgments
-I extend my sincere gratitude to the HackSmarter community for their invaluable support and guidance throughout my cybersecurity journey. HackSmarter's collaborative spirit and expertise have been instrumental in shaping this project. Join the community on [Discord](https://discord.gg/HYAFwSSu7f).
-
-I would also like to express my appreciation to the development teams behind ChatGPT-o1, DeepSeek R1, and Claude Sonnet 3.5. Their groundbreaking work in artificial intelligence has enabled individual developers like myself to create sophisticated tools like Zerodayf. Their commitment to advancing AI technology has made it possible to build innovative solutions that contribute to the cybersecurity community.
-
-This project demonstrates how individual developers can leverage cutting-edge AI technology to create meaningful tools for the security and development community.
 
