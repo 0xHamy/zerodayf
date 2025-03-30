@@ -9,11 +9,6 @@ from markdown import markdown as md_to_html
 
 util_router = APIRouter(prefix="/utils", tags=["Utilities"])
 
-@util_router.get("/file-read")
-def file_read(path: str):
-    with open(path, "r") as f:
-        return {"content": f.read()}
-
 
 @util_router.get("/download-report/ai/{uid}")
 async def download_ai_report(
