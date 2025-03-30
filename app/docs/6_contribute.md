@@ -5,6 +5,7 @@ Thank you for your interest in contributing to Zerodayf! We're particularly focu
 ## Priority Contribution Areas
 You can contribute by adding support for additional LLVM APIs and creating endpoint mappers.
 
+
 ### Mappers
 The following is an endpoint mapper that works with Flask debugger console:
 ```py
