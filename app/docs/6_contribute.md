@@ -1,9 +1,9 @@
 # Contributing to Zerodayf
 
-Thank you for your interest in contributing to Zerodayf! We're particularly focused on expanding adding more mappers to make our tool more accessible to a wider range of developers and security researchers.
+Thank you for your interest in contributing to Zerodayf! We're particularly focused on adding more mappers to make our tool more accessible to a wider range of developers and security researchers.
 
 ## Priority Contribution Areas
-You can contribute by adding support for additional LLVM APIs and creating endpoint mappers.
+You can contribute by adding support for additional LLM APIs and creating endpoint mappers.
 
 
 ### Mappers
@@ -95,7 +95,7 @@ json_output = json.dumps(result)
 
 
 ### Additional AI support
-Currently Zerodayf supports all LLVM models provided by Anthropic, OpenAI & HuggingFace. That's a lot of models but not enough, here are some more you could help us add:
+Currently Zerodayf supports all LLM models provided by Anthropic, OpenAI & HuggingFace. That's a lot of models but not enough, here are some more you could help us add:
 - Gemeni (Google)
 - Grok (xAI)
 
@@ -110,6 +110,6 @@ That's it.
 
 To get started with making a contribution, simply create a GitHub issue and I will make the changes while crediting you.
 
-I think this is much easier to do than asking you to setup the whole thing and make a push request. 
+I think this is much easier to do than asking you to setup the whole thing and make a pull/push request. 
 
 

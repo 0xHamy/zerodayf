@@ -1,7 +1,3 @@
-![Maintenance Notice](https://i.ibb.co/2YnRws44/image.png)
-
-**The repository is currently under maintenance, please come back later.**
-
 ![Project Logo](./app/docs/zerodayf_0_6_0.png)
 [![Version](https://shields.io/badge/version-0.6.0--beta-orange)]()
 [![Build Status](https://shields.io/badge/build-passing-green)]()
@@ -10,17 +6,17 @@
 
 
 # 🌟 Introduction
-> Zerodayf (zeroday factory) is an advanced code analysis platform that leverages artificial intelligence & SAST to identify vulnerabilities within source code. 
+> Zerodayf (Zeroday Factory) is an advanced code analysis platform that leverages artificial intelligence & Semgrep-OSS to identify vulnerabilities within source web apps written with any major backend framework such as Flask, Laravel, Rails, ASP.NET Core and others. 
 
 The system differentiates itself by offering a flexible approach to code analysis, enabling security professionals and developers to utilize their preferred AI models for comprehensive code evaluation beyond traditional vulnerability detection.
 
-Zerodayf was created by a vulnerability researcher to make the process of 0day hunting easier in open-source web apps. Now, developers and hackers can outsource the entire process of code analysis to AI.
+Zerodayf was created by a [vulnerability researcher](https://hkohi.ca/whoami) to make the process of 0day hunting easier in open-source web apps. Now, developers and hackers can outsource the entire process of code analysis to AI.
 
 _**Pelase note Zerodayf is still in beta testing mode.**_
 
 
 ## 10 Easy steps to get started 
-1. Get a JSON mapping data from the app's debugger
+1. Get a JSON mapping string from the app's debugger, see [Getting Started](./app/docs/3_getting_started.md)
 2. Open `/code-map` in zerodayf and add new data (fill the form)
 3. Go to `/manage-api` and set API key and model for an LLM model of your choice
 4. Go to `/endpoint-mapping`, select the code mapping you created from the dropdown & load it
@@ -29,24 +25,25 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 7. Select either a `semgrep` or AI template; or select them both; set a scan name 
 8. Click "Perform Analysis"
 9. Check `/code-analysis` to see if analysis was completed 
-10. View scan report; download repprt as PDF, HTML, Markdown 
+10. View analysis report; download repprt as PDF, HTML, Markdown 
 
 
 ## 💡 Tutorial
-Please watch the following demo to understand usage:
+Please watch the following demo to see Zerodayf in action, in this video zerodayf will be battle-tested on real web apps:
 ![Demo](./app/docs/zerodayf-demo.gif)
+
 
 ## ✨ Features
 1. Perform analysis on any type of framework 
 2. Map endpoints (e.g. `/login`) to backend code
 3. Map API calls inside templates & .js files imported by the template to backend endpoints & code 
-4. Works with any major template such as .jsx, .html, .ts and others
+4. Works with any widely used templates such as .jsx, .html, .ts and others
 5. Save endpoint mappings to a database table to keep track of them 
 6. Load any endpoint mapping for vulnerability analysis
 7. Perform AI, Semgrep analysis individually or combined
 8. View code file, start & end line ranges will be highlighted to show relevant code for clarity
 9. Create as many analysis templates as you want to look for different types of vulnerabilities or design flaws 
-10. View analysis reports, download reports as PDF, HTML & Markdown for different application 
+10. View analysis reports, download reports as PDF, HTML & Markdown for different applications 
 
 
 

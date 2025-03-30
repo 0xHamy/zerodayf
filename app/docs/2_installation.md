@@ -1,9 +1,9 @@
 # Installation
-The installation was tested on XUbuntu Linux version 24.04. It should work the same across other Ubuntu & Debian based distros but not sure about Windows. 
+The installation was tested on xUbuntu Linux version 24.04. It should work the same across other Ubuntu & Debian based distros but not sure about Windows. 
 
 There are two ways to install zerodayf: 
 - Docker
-- Local  
+- Local setup
 
 
 ## 🛠️ Installation with Docker
@@ -31,10 +31,10 @@ The Docker container configuration implements the following specifications throu
 - Implementation of a database readiness verification script
 - Port 1337 exposure for web application access
 
+
 ### Dockerfile Configuration
-The docker-compose.yaml configuration file requires careful consideration due to its security implications:
-- The `network_mode: "host"` setting grants the Docker container full access to your host network
-- Volume configurations enable Docker to access host system files, with read-only (ro) access to the `/home` directory, where projects are expected to reside
+The `docker-compose.yaml` configuration file requires careful consideration due to its security implications:
+- Volume configurations enable Docker to access host system files, with read-only (ro) permissions to the `/home` directory, where projects are expected to reside
 - While database credentials can be modified, maintaining default values is recommended unless specifically required
 
 This Docker-based deployment method provides the most streamlined approach to implementing Zerodayf.
@@ -56,7 +56,7 @@ uvicorn app.main:app --reload
 ```
 
 ### Depedencies 
-Zerodayf uses pandoc for formatting PDF reports, run the following command to install them all:
+Zerodayf uses `pandoc` for formatting PDF reports, run the following command to install them all:
 ```
 sudo sh -c "apt update && apt install pandoc texlive-full -y"
 ```
@@ -73,7 +73,7 @@ DATABASE_URL = os.getenv(
 )
 ```
 
-Run the following script to setup postgresql with user postgres:
+Run the following script to setup postgresql with user `postgres`:
 ```bash
 #!/bin/bash
 

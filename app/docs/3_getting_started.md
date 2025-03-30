@@ -1,24 +1,25 @@
 # Getting Started with Zerodayf
-To get started with using zerodayf, you need to follow a few easy steps. The entire process is guided and I can help you troubleshoot any errors you face. 
+To get started with using zerodayf, you need to follow a few easy steps. The entire process is guided and I can help you'd troubleshoot any errors you face. 
 
 ## API Configuration
-The initial step in setting up Zerodayf is configuring an API key and AI model for code analysis. These APIs are different than AI subscriptions, for example buying ChatGPT's permium doesn't give you access to its API, you have to pay at least $5.00 to buy API credits. 
+The initial step in setting up Zerodayf is configuring an API key and AI model for code analysis. These APIs are different than AI subscriptions, for example buying ChatGPT's premium doesn't give you access to its API, you have to pay at least $5.00 to buy API credits. 
 
-You can also use free LLVM models from [HuggingFace](https://huggingface.co/). 
+You can also use free LLM models from [HuggingFace](https://huggingface.co/). 
 
-Navigate to `/manage-api` and complete the API configuration form with the following details:
+Open Zerodayf & navigate to `/manage-api` and complete the API configuration form with the following details:
 
 Example Configuration:
 - API Name: default
 - API Provider: HuggingFace
 - Data Model: Qwen/Qwen2.5-Coder-32B-Instruct
 - API Token: hf_BXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+- Max Tokens: 5000 (caution, research required)
 
-For users without an existing API key, we recommend obtaining access to the Qwen2.5-32B model through HuggingFace. After configuration, activate the API using the "Activate API by Name" input field.
+For users without an existing API key, we recommend obtaining access to the Qwen2.5-32B model through HuggingFace. After configuration, activate the API and you will be able to use it.
 
 
 ## Getting debugger data
-Zerodayf expects users to get an initial endpoint mapping JSON string from the debugger console of their target web app. On Flask web app, you can access the debugger console by opening your target web app and navigating to `/console` page and entering the PIN code. 
+Zerodayf expects users to get an initial endpoint mapping JSON string from the debugger console of their target web app. On a Flask web app, you can access the debugger console by running the web app in debug mode, opening your target web app and navigating to `/console` page and entering the PIN code. 
 
 In other frameworks, it's going to be different but regardless of the framework you are working with, zerodayf expects a JSON string like this:
 ```json
@@ -42,7 +43,7 @@ For Flask apps, you can get that JSON by running the following into the console:
 import inspect, re, os, json, importlib; json.dumps({str(rule): {'method': sorted(list(rule.methods)) if rule.methods else [], 'view_func': (f := func) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) or f) or f) and f"{inspect.getfile(f)}#{(sl := inspect.getsourcelines(f)[1])}-{(sl + len(inspect.getsourcelines(f)[0]) - 1)}" or 'No view function', 'template': (m := re.search(r'render_template\s*\(\s*[\'\"]([^\'\"]+\.(?:html|jsx|ts|j2|twig))[\'\"]', inspect.getsource(f))) and (template_name := m.group(1)) and (search_paths := [os.path.join(os.path.dirname(importlib.import_module(bp.import_name).__file__), bp.template_folder), os.path.join(app.root_path, app.template_folder)] if (bp_name := rule.endpoint.split('.')[0] if '.' in rule.endpoint else None) and (bp := app.blueprints.get(bp_name)) and bp.template_folder else [os.path.join(app.root_path, app.template_folder)]) and (tp := next((os.path.join(sp, template_name) for sp in search_paths if os.path.exists(os.path.join(sp, template_name))), None)) and f'{tp}#1-{len(open(tp).readlines())}' or 'none'} for rule in app.url_map.iter_rules() if (func := app.view_functions.get(rule.endpoint))})
 ```
 
-For other frameworks this is going to be different. For more on mappers, please visit [Frameworks](./4_frameworks.md) page.
+For other frameworks this is going to be different. For more on mappers, please visit [Frameworks](./5_frameworks.md) page.
 
 
 ## Endpoint mapping through zerodayf
@@ -78,7 +79,7 @@ The final JSON string may look something like this:
 }
 ```
 
-Zerodayf maps API calls to endpoints. 
+Zerodayf uses a built-in endpoint mappers to map API calls to endpoints. This is why you need to give zerodayf access to your project's source code. 
 
 
 ## Analysis Templates
@@ -102,7 +103,7 @@ Please write the code back to me along with their full paths. Search for the fol
 Make sure to dissect code properly.
 ```
 
-The markdown above is an example of how you query an AI model's API. These APIs often accept answers in Markdown format and they provide outputs in Markdown format as well. For that reason we are using Markdown format and a placeholder named `CODEPLACEHOLDER` to replace it with our code. 
+The markdown above is an example of how you query an AI model's API. These APIs often accept answers in Markdown format and they provide outputs in Markdown format as well. For that reason we are using Markdown and a placeholder `CODEPLACEHOLDER` to replace it with our code. 
 
 When scanning multiple files, zerodayf loops through their code & also files paths, then it populates the templates. Here is an example of how a populated template looks like:
 ``````markdown

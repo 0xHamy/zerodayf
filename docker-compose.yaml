@@ -1,7 +1,6 @@
 services:
   web:
     build: .
-    network_mode: "host"
     volumes:
       - .:/app
       - /home:/home:ro
