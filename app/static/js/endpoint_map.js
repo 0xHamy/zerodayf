@@ -255,7 +255,8 @@ $(document).ready(function () {
     function initiateScan(type, templateId, scanData) {
         const endpoint = `/endpoint-map/perform-analysis/${type}`;
         const data = { ...scanData, template: templateId };
-        showMessage('success', `${type === 'ai' ? 'AI' : 'Semgrep'} scan initiated`);
+        const scan_name = $('#scan-name').val().trim();
+        showMessage('success', `Scan name: ${scan_name} | Type: ${type === 'ai' ? 'AI' : 'Semgrep'} initiated.`);
         $.ajax({
             url: endpoint,
             method: 'POST',
