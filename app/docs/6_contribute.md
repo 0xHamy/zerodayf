@@ -7,12 +7,7 @@ You can contribute by adding support for additional LLVM APIs and creating endpo
 
 
 ### Mappers
-The following is an endpoint mapper that works with Flask debugger console:
-```py
-import inspect, re, os, json, importlib; json.dumps({str(rule): {'method': sorted(list(rule.methods)) if rule.methods else [], 'view_func': (f := func) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) or f) or f) and f"{inspect.getfile(f)}#{(sl := inspect.getsourcelines(f)[1])}-{(sl + len(inspect.getsourcelines(f)[0]) - 1)}" or 'No view function', 'template': (m := re.search(r'render_template\s*\(\s*[\'\"]([^\'\"]+\.(?:html|jsx|ts|j2|twig))[\'\"]', inspect.getsource(f))) and (template_name := m.group(1)) and (search_paths := [os.path.join(os.path.dirname(importlib.import_module(bp.import_name).__file__), bp.template_folder), os.path.join(app.root_path, app.template_folder)] if (bp_name := rule.endpoint.split('.')[0] if '.' in rule.endpoint else None) and (bp := app.blueprints.get(bp_name)) and bp.template_folder else [os.path.join(app.root_path, app.template_folder)]) and (tp := next((os.path.join(sp, template_name) for sp in search_paths if os.path.exists(os.path.join(sp, template_name))), None)) and f'{tp}#1-{len(open(tp).readlines())}' or 'none'} for rule in app.url_map.iter_rules() if (func := app.view_functions.get(rule.endpoint))})
-```
-
-It has a simple task: map endpoints to their backend code & templates. Here is a mode readable version of the mapper:
+Currently Zerodayf offers a Flask mapper, but you can study the following implementation to create mappers for other frameworks:
 ```py
 import inspect, re, os, json, importlib
 
@@ -97,10 +92,6 @@ result = {
 # Convert the resulting dictionary to a JSON string
 json_output = json.dumps(result)
 ```
-
-In zerodayf 0.5.0, I performed this by searching for the endpoint definition inside project's root directory recursively. But I understood later on that people have been using Flask in ways that were not standardized so I came up with a better solution. 
-
-While this step helps in mapping any type of Flask app, the downside is that you need access to the debugger of the web app. If you are a penetration tester, you would need to run the web app in debug mode to access the debugger console. Debugging is something developers do during the development process to weed out bugs but it has other use cases too. 
 
 
 ### Additional AI support
