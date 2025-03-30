@@ -1,4 +1,6 @@
 # Installation
+The installation was tested on XUbuntu Linux version 24.04. It should work the same across other Ubuntu & Debian based distros but not sure about Windows. 
+
 There are two ways to install zerodayf: 
 - Docker
 - Local  
@@ -55,7 +57,9 @@ uvicorn app.main:app --reload
 
 ### Depedencies 
 Zerodayf uses pandoc for formatting PDF reports, run the following command to install them all:
-`sudo sh -c "apt update && apt install pandoc texlive-full -y"`
+```
+sudo sh -c "apt update && apt install pandoc texlive-full -y"
+```
 
 This is not necessary, if you are okay with HTML & Markdown reports as most people are, you won't need this. 
 

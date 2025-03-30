@@ -24,7 +24,7 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 
 
 ## 10 Steps to test any endpoint
-1. Get a JSON mapping data from the app's debugger
+1. Get a JSON mapping data from the app's debugger using a mapper (see [Getting Started](./3_getting_started.md))
 2. Open `/code-map` in zerodayf and add new data (fill the form)
 3. Go to `/manage-api` and set API key and model for an LLM model of your choice
 4. Go to `/endpoint-mapping`, select the code mapping you created from the dropdown & load it
