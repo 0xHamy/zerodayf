@@ -167,10 +167,22 @@
             <a class="item" data-tab="code">Code</a>
         </div>
         <div class="ui bottom attached tab segment active" data-tab="files">
+
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                <!-- Input field for scan name with Semantic UI styling -->
                 <div class="ui form" style="flex: 1;">
                     <div class="field">
-                        <label>Select AI Template</label>
+                        <label for="scan-name">Scan Name</label>
+                        <div class="ui input">
+                            <input type="text" value="scan_name" id="scan-name" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Template Dropdown -->
+                <div class="ui form" style="flex: 1;">
+                    <div class="field">
+                        <label for="ai-template-dropdown-upon">Select AI Template</label>
                         <div class="ui selection dropdown" id="ai-template-dropdown">
                             <input type="hidden" name="ai-template">
                             <i class="dropdown icon"></i>
@@ -179,9 +191,11 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Semgrep Template Dropdown -->
                 <div class="ui form" style="flex: 1;">
                     <div class="field">
-                        <label>Select Semgrep Template</label>
+                        <label for="semgrep-template-dropdown-upon">Select Semgrep Template</label>
                         <div class="ui selection dropdown" id="semgrep-template-dropdown">
                             <input type="hidden" name="semgrep-template">
                             <i class="dropdown icon"></i>
@@ -190,8 +204,13 @@
                         </div>
                     </div>
                 </div>
-                <button class="ui primary button" id="perform-analysis" disabled>Perform Analysis</button>
+                
+                <!-- Analysis Button -->
+                <div style="align-self: flex-end;">
+                    <button class="ui primary button" id="perform-analysis" disabled>Perform Analysis</button>
+                </div>
             </div>
+
             <table class="ui celled table" id="files-table">
                 <thead>
                     <tr>

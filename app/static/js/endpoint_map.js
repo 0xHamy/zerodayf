@@ -237,7 +237,7 @@ $(document).ready(function () {
         }
 
         const scanData = {
-            scan_name: `Analysis for endpoint ${$('#endpoint-title').text()}`,
+            scan_name: $('#scan-name').val().trim(),
             files: selectedFiles
         };
 

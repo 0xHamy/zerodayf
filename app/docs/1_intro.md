@@ -10,34 +10,41 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 ---
 
 
-The new version of zerodayf works with any framework, as long as you can produce the JSON data required, the framework doesn't matter. 
-
-
 ## Features
-1. Ability to perform analysis on any type of framework 
+1. Perform analysis on any type of framework 
 2. Map endpoints (e.g. `/login`) to backend code
-3. Map API calls inside templates & .js files to backend endpoints & code 
+3. Map API calls inside templates & .js files imported by the template to backend endpoints & code 
 4. Works with any major template such as .jsx, .html, .ts and others
-5. 
+5. Save endpoint mappings to a database table to keep track of them 
+6. Load any endpoint mapping for vulnerability analysis
+7. Perform AI, Semgrep analysis individually or combined
+8. View code file, start & end line ranges will be highlighted to show relevant code for clarity
+9. Create as many analysis templates as you want to look for different types of vulnerabilities or design flaws 
+10. View analysis reports, download reports as PDF, HTML & Markdown for different application 
 
+## 3 Steps to test any endpoint
+1. Get a JSON mapping data from the app's debugger
+2. Open /code-map in zerodayf and add new data (fill the form)
+3. Go to /endpoint-mapping, select the code mapping you created from the dropdown & load it
+4. Go to /analysis-templates & load default semgrep & AI templates or create custom ones
+5. Go to /endpoint-mapping & view an endpoint you want to test; select one or more files associated with the endpoint
+6. Select either a semgrep or AI template; or select them both; set a scan name
+7. Click "Perform Analysis"
+8. Check `/code-analysis` to see if analysis was completed 
+9. View scan report; download repprt as PDF, HTML, Markdown 
 
 ---
 
 ## Core Workflow Architecture
 Zerodayf employs a distinctive approach to code analysis that sets it apart from conventional static analysis tools such as Snyk and Aikido.
 
-The platform implements context-aware code evaluation by functioning as an intercepting proxy, capturing and analyzing the backend code that processes web requests in real-time.
+The platform implements context-aware code evaluation by targeting specific endpoints, for example we can perform an analysis not just on the backend of `/login` endpoint but also on its template, API calls inside the template & API calls inside any .js files imported by the template. 
 
+This allows hackers to perform an analysis on all associated files for a context-aware analysis OR just scan specific files. 
 
-This architectural design allows Zerodayf to integrate seamlessly with both standard web browsers and professional security assessment tools, including BurpSuite. 
+Zerodayf requires users to have access to the debug interface of the web app they are testing. The debug interface allows you to map endpoints to their backend code & templates, at the moment, we are provide a one-liner code that you can run on debug interface of any Flask app to get the mapping for all its endpoints.
 
-By operating as a proxy service, Zerodayf can effectively monitor and evaluate code execution patterns as they occur within the application's natural flow, providing more accurate and contextually relevant analysis results.
-
-
-The system's ability to intercept and record backend code processing enables a deeper understanding of application behavior, facilitating more thorough security assessments and code quality evaluations. 
-
-This dynamic approach to code analysis represents a significant advancement over traditional static analysis methodologies.
-
+But that's not enough because the debugger can scan endpoints and map them to templates but for a deeper analysis, zerodayf another secondary scan to map APIs used by templates to their backend code. 
 
 Zerodayf operates through a systematic workflow that enables comprehensive code analysis. The process follows these essential steps:
 
@@ -60,37 +67,23 @@ Zerodayf provides comprehensive flexibility through its customizable configurati
    Users can integrate their preferred artificial intelligence models, including but not limited to ChatGPT, Claude, Qwen, and DeepSeek, ensuring compatibility with their existing AI infrastructure.
 
 2. **Specialized Scan Templates**
-   The platform enables the implementation of focused scan templates tailored to identify specific security vulnerabilities, allowing for targeted analysis based on security requirements.
+   The platform enables the implementation of focused scan templates for both AI & semgrep, tailored to identify specific security vulnerabilities.
 
-3. **Multi-Template Support**
-   Users can deploy multiple scan templates simultaneously, facilitating diverse analysis objectives and security assessments within a single scanning session.
+3. **Multi-Analysis Support**
+   Users can perform Semgrep & AI scans on any endpoint of their choice simultaneously. 
 
-4. **Multiple AI API Integration**
-   The system supports the concurrent integration of multiple AI service APIs, providing redundancy and enabling comparative analysis across different AI models.
+4. **Analysis reports**
+   The system allows users to download reports in multiple formats such as PDF, HTML & Markdown.
 
-5. **Proxy Integration Options**
-   Zerodayf offers versatile deployment options, supporting direct browser integration as well as compatibility with professional security tools such as BurpSuite and OWASP ZAP proxy.
+5. **Built-in documentation**
+   Zerodayf comes with a built-in proxy that allows you use it even while offline. 
 
 These configuration options ensure that Zerodayf can be tailored to meet specific organizational requirements while maintaining operational efficiency.
 
 ---
 
-## Future Plans: Implementing Data Collection in Zerodayf
-Zerodayf was initially designed to incorporate user feedback functionality for scan results. This feature would enable developers to validate the artificial intelligence findings, specifically by confirming the presence of identified flaws or vulnerabilities in their code.
-
-In our upcoming release, Zerodayf will introduce this feedback system, allowing users to submit multiple responses for each scan result. This enhancement represents a significant step toward our broader vision for the platform.
-
-The collection and integration of user feedback will enable us to develop a sophisticated, crowd-sourced code analysis scanner. This enhanced system will be fine-tuned using real-world projects and code samples, leading to more rapid and accurate vulnerability detection. By incorporating actual user experiences and validation, we aim to create a more precise and efficient scanning solution.
-
-We have strategically chosen to delay the implementation of this feature while we assess community adoption of the core Zerodayf platform. This measured approach allows us to ensure that our development efforts align with user needs and expectations.
-
----
-
 # Community Feedback and Contributions
 As an open-source code analysis scanner, Zerodayf actively welcomes feedback from security researchers and developers to enhance its capabilities. 
-
-We recognize that continuous improvement depends on insights from professionals who use the tool in their daily work.
-
 
 Having been developed by a security practitioner with extensive experience in both offensive security and software development, Zerodayf is committed to serving the needs of the cybersecurity community. 
 
