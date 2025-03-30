@@ -10,7 +10,7 @@
 
 
 # 🌟 Introduction
-> Zerodayf (zeroday factory) is an advanced code analysis platform that leverages artificial intelligence to identify vulnerabilities within source code. 
+> Zerodayf (zeroday factory) is an advanced code analysis platform that leverages artificial intelligence & SAST to identify vulnerabilities within source code. 
 
 The system differentiates itself by offering a flexible approach to code analysis, enabling security professionals and developers to utilize their preferred AI models for comprehensive code evaluation beyond traditional vulnerability detection.
 
