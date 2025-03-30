@@ -1,5 +1,8 @@
 # Getting Started with Zerodayf
 
+
+
+
 ## API Configuration
 The initial step in setting up Zerodayf is configuring an API key and AI model for code analysis. These APIs are different than AI subscriptions, for example buying ChatGPT's permium doesn't give you access to its API, you have to pay at least $5.00 to buy API credits. 
 

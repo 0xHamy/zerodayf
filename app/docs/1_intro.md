@@ -22,14 +22,15 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 9. Create as many analysis templates as you want to look for different types of vulnerabilities or design flaws 
 10. View analysis reports, download reports as PDF, HTML & Markdown for different application 
 
+
 ## 10 Steps to test any endpoint
 1. Get a JSON mapping data from the app's debugger
-2. Open /code-map in zerodayf and add new data (fill the form)
-3. Go to /manage-api and set API key and model for an LLM model of your choice
-4. Go to /endpoint-mapping, select the code mapping you created from the dropdown & load it
-5. Go to /analysis-templates & load default semgrep & AI templates or create custom ones
-6. Go to /endpoint-mapping & view an endpoint you want to test; select one or more files associated with the endpoint
-7. Select either a semgrep or AI template; or select them both; set a scan name 
+2. Open `/code-map` in zerodayf and add new data (fill the form)
+3. Go to `/manage-api` and set API key and model for an LLM model of your choice
+4. Go to `/endpoint-mapping`, select the code mapping you created from the dropdown & load it
+5. Go to `/analysis-templates` & load default semgrep & AI templates or create custom ones
+6. Go to `/endpoint-mapping` & view an endpoint you want to test; select one or more files associated with the endpoint
+7. Select either a `semgrep` or AI template; or select them both; set a scan name 
 8. Click "Perform Analysis"
 9. Check `/code-analysis` to see if analysis was completed 
 10. View scan report; download repprt as PDF, HTML, Markdown 
