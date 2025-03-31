@@ -29,7 +29,7 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 
 
 ## 💡 Tutorial
-Tutorial coming soon.
+[![Watch the video](https://img.youtube.com/vi/vonOzedeN5M/0.jpg)](https://www.youtube.com/watch?v=vonOzedeN5M)
 
 
 ## ✨ Features
