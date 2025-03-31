@@ -28,7 +28,7 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 10. View analysis report; download repprt as PDF, HTML, Markdown 
 
 
-## 💡 Tutorial
+## 💡 Demo
 [![Watch the video](https://img.youtube.com/vi/vonOzedeN5M/0.jpg)](https://www.youtube.com/watch?v=vonOzedeN5M)
 
 
