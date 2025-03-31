@@ -59,6 +59,56 @@
         background: #1678c2;
     }
 
+    /* New styling for files-table */
+    #files-table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    #files-table th:nth-child(1),
+    #files-table td:nth-child(1) {
+        width: 40px; /* Checkbox column */
+    }
+
+    #files-table th:nth-child(2),
+    #files-table td:nth-child(2) {
+        width: auto; /* File Path column, takes remaining space */
+    }
+
+    #files-table th:nth-child(3),
+    #files-table td:nth-child(3) {
+        width: 150px; /* Type column */
+    }
+
+    #files-table th:nth-child(4),
+    #files-table td:nth-child(4) {
+        width: 100px; /* Actions column */
+    }
+
+    #files-table td:nth-child(2) {
+        white-space: nowrap;
+        overflow-x: auto;
+        text-overflow: ellipsis;
+    }
+
+    #files-table td::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    #files-table td::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    #files-table td::-webkit-scrollbar-thumb {
+        background: #2185d0;
+        border-radius: 4px;
+    }
+
+    #files-table td::-webkit-scrollbar-thumb:hover {
+        background: #1678c2;
+    }
+
     .mapping-form {
         margin-bottom: 20px;
     }
@@ -136,7 +186,6 @@
     <button class="ui violet button" id="load-endpoints">Load Endpoints</button>
 </div>
 
-
 <!-- Endpoint Table -->
 <table class="ui celled table" id="route-table">
     <thead>
@@ -154,7 +203,6 @@
     <tbody></tbody>
 </table>
 
-
 <!-- View Endpoint Modal -->
 <div class="ui fullscreen modal" id="view-endpoint-modal">
     <i class="close icon"></i>
@@ -166,8 +214,8 @@
             <a class="item active" data-tab="files">Files</a>
             <a class="item" data-tab="code">Code</a>
         </div>
+        <!-- Files Table -->
         <div class="ui bottom attached tab segment active" data-tab="files">
-
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
                 <!-- Input field for scan name with Semantic UI styling -->
                 <div class="ui form" style="flex: 1;">
@@ -221,12 +269,14 @@
                             </div>
                         </th>
                         <th>File Path</th>
+                        <th>Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
+
         <!-- Code Tab -->
         <div class="ui bottom attached tab segment" data-tab="code">
             <div class="code-container" style="display: flex;">

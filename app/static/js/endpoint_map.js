@@ -88,21 +88,34 @@ $(document).ready(function () {
         $('#view-endpoint-modal').modal('show');
     }
 
+
     // Populate files table in modal
     function populateFilesTable(endpointData) {
         const tableBody = $('#files-table tbody');
         tableBody.empty();
-        if (endpointData.view_func) {
+        
+        // Add view_func if present
+        if (endpointData.view_func && endpointData.view_func !== 'No view function') {
             tableBody.append(createFileRow('view_func', endpointData.view_func));
         }
-        if (endpointData.template && endpointData.template !== 'none') {
-            tableBody.append(createFileRow('template', endpointData.template));
-        }
-        if (endpointData.api_functions) {
-            Object.entries(endpointData.api_functions).forEach(([api, file]) => {
-                tableBody.append(createFileRow(`api_function: ${api}`, file));
+        
+        // Add all templates if the list exists and is not empty
+        if (endpointData.templates && endpointData.templates.length > 0) {
+            endpointData.templates.forEach((template) => {
+                if (template !== 'none') {
+                    tableBody.append(createFileRow('template', template));
+                }
             });
         }
+        
+        // Add api_functions if present
+        if (endpointData.api_functions && Object.keys(endpointData.api_functions).length > 0) {
+            Object.entries(endpointData.api_functions).forEach(([api, file]) => {
+                tableBody.append(createFileRow(`api_function (${api})`, file));
+            });
+        }
+        
+        // Event handlers for checkboxes
         $('#select-all-files').on('change', function () {
             const checked = $(this).prop('checked');
             $('#files-table .file-checkbox').prop('checked', checked);
@@ -124,7 +137,8 @@ $(document).ready(function () {
                         <label></label>
                     </div>
                 </td>
-                <td>${fileType}: ${displayPath}</td>
+                <td>${displayPath}</td>
+                <td>${fileType}</td>
                 <td>
                     <button class="ui button view-file-button" data-file="${path}" data-start="${start}" data-end="${end}">View</button>
                 </td>
