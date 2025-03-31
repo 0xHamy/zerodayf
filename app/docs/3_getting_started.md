@@ -25,15 +25,17 @@ Zerodayf expects users to get an initial endpoint mapping JSON string from the d
 In other frameworks, it's going to be different but regardless of the framework you are working with, zerodayf expects a JSON string like this:
 ```json
 {
-    "/": {
+    "/index": {
         "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#13-15",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/home.html#1-83"
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#15-20",
+        "templates": []
     },
-    "/blog": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#18-21",
-        "template": "/home/hamy/hkohi.ca/public/backend/../templates/blog.html#1-77"
+    "/login": {
+        "method": ["GET", "HEAD", "OPTIONS", "POST"],
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#29-56",
+        "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20",
+            "/home/hamy/url_shortner/redroute/templates/login.html#1-33"
+        ]
     },
 }
 ```
@@ -41,7 +43,7 @@ In other frameworks, it's going to be different but regardless of the framework 
 ### Flask mapper 
 For Flask apps, you can get that JSON by running the following into the console:
 ```py
-import inspect, re, os, json, importlib; json.dumps({str(rule): {'method': sorted(list(rule.methods)) if rule.methods else [], 'view_func': (f := func) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) or f) or f) and f"{inspect.getfile(f)}#{(sl := inspect.getsourcelines(f)[1])}-{(sl + len(inspect.getsourcelines(f)[0]) - 1)}" or 'No view function', 'template': (m := re.search(r'render_template\s*\(\s*[\'\"]([^\'\"]+\.(?:html|jsx|ts|j2|twig))[\'\"]', inspect.getsource(f))) and (template_name := m.group(1)) and (search_paths := [os.path.join(os.path.dirname(importlib.import_module(bp.import_name).__file__), bp.template_folder), os.path.join(app.root_path, app.template_folder)] if (bp_name := rule.endpoint.split('.')[0] if '.' in rule.endpoint else None) and (bp := app.blueprints.get(bp_name)) and bp.template_folder else [os.path.join(app.root_path, app.template_folder)]) and (tp := next((os.path.join(sp, template_name) for sp in search_paths if os.path.exists(os.path.join(sp, template_name))), None)) and f'{tp}#1-{len(open(tp).readlines())}' or 'none'} for rule in app.url_map.iter_rules() if (func := app.view_functions.get(rule.endpoint))})
+import inspect, re, os, json, importlib; json.dumps({str(rule): {'method': sorted(list(rule.methods)) if rule.methods else [], 'view_func': (f := func) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) and (('site-packages' in inspect.getfile(f) or 'venv' in inspect.getfile(f)) and hasattr(f, '__wrapped__') and (f := f.__wrapped__) or f) or f) and f"{inspect.getfile(f)}#{(sl := inspect.getsourcelines(f)[1])}-{(sl + len(inspect.getsourcelines(f)[0]) - 1)}" or 'No view function', 'templates': (matches := re.findall(r'render_template\s*\(\s*[\'\"]([^\'\"]+\.(?:html|jsx|ts|j2|twig))[\'\"]', inspect.getsource(f))) and (search_paths := [os.path.join(os.path.dirname(importlib.import_module(bp.import_name).__file__), bp.template_folder), os.path.join(app.root_path, app.template_folder)] if (bp_name := rule.endpoint.split('.')[0] if '.' in rule.endpoint else None) and (bp := app.blueprints.get(bp_name)) and bp.template_folder else [os.path.join(app.root_path, app.template_folder)]) and [(tp := next((os.path.join(sp, tn) for sp in search_paths if os.path.exists(os.path.join(sp, tn))), None)) and f'{tp}#1-{len(open(tp).readlines())}' or 'none' for tn in matches] or []} for rule in app.url_map.iter_rules() if (func := app.view_functions.get(rule.endpoint))})
 ```
 
 For other frameworks this is going to be different. For more on mappers, please visit [Frameworks](./5_frameworks.md) page.
@@ -53,30 +55,24 @@ Once you get the required JSON string, you can add it by navigating to `/code-ma
 The final JSON string may look something like this:
 ```json
 {
-  "/blog": {
-    "method": [
-      "GET",
-      "HEAD",
-      "OPTIONS"
-    ],
-    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#18-21",
-    "template": "/home/hamy/hkohi.ca/public/templates/blog.html#1-77",
-    "api_functions": {
-      "/dummy_api": "/home/hamy/hkohi.ca/public/backend/views.py#58-60"
-    }
-  },
-  "/open-source": {
-    "method": [
-      "GET",
-      "HEAD",
-      "OPTIONS"
-    ],
-    "view_func": "/home/hamy/hkohi.ca/public/backend/views.py#24-27",
-    "template": "/home/hamy/hkohi.ca/public/templates/open_source.html#1-101",
-    "api_functions": {
-      "/dummy_api": "/home/hamy/hkohi.ca/public/backend/views.py#58-60"
-    }
-  },
+
+    "/login": {
+        "method": ["GET", "HEAD", "OPTIONS", "POST"],
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#29-56",
+        "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20",
+            "/home/hamy/url_shortner/redroute/templates/login.html#1-33"
+        ],
+        "api_functions": {
+            "dummy_api": "/home/hamy/url_shortner/redroute/routes.py#89-111",
+            "test_api": "/home/hamy/url_shortner/redroute/routes.py#141-200"
+        }
+    },
+    "/logout": {
+        "method": ["GET", "HEAD", "OPTIONS"],
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#58-62",
+        "templates": [],
+        "api_functions": {}
+    },
 }
 ```
 
