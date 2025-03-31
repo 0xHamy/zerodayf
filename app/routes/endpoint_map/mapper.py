@@ -7,17 +7,25 @@ class EndpointAnalyzer:
     It then creates another JSON object with the mapping of API calls to their respective endpoints.
     The JSON string should be in the format:
     {
-    "/static/<path:filename>": {
-        "method": ["GET", "HEAD", "OPTIONS"],
-        "view_func": "/home/hamy/microblog/venv/lib/python3.12/site-packages/flask/app.py#257-257",
-        "template": "none"
-    },
-    "/auth/login": {
+    "/login": {
         "method": ["GET", "HEAD", "OPTIONS", "POST"],
-        "view_func": "/home/hamy/microblog/app/auth/routes.py#14-30",
-        "template": "/home/hamy/microblog/app/templates/auth/login.html#1-12"
-    }
-    }
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#29-56",
+        "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20",
+            "/home/hamy/url_shortner/redroute/templates/login.html#1-33"
+        ]
+    },
+    "/logout": {
+        "method": ["GET", "HEAD", "OPTIONS"],
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#58-62",
+        "templates": []
+    },
+    "/signup": {
+        "method": ["GET", "HEAD", "OPTIONS", "POST"],
+        "view_func": "/home/hamy/url_shortner/redroute/routes.py#66-100",
+        "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20",
+            "/home/hamy/url_shortner/redroute/templates/signup.html#1-38"
+        ]
+    }}
     Additionally, the class accepts the root path of the web application to locate and analyze JavaScript files imported in the templates.
     It searches recursively for .js files specified in patterns like <script src="...">, Jinja2's url_for, and Twig's asset, using the filename only,
     excluding directories like 'venv', 'site-packages', and 'virtualenv', and extracts API calls from these files, mapping them to endpoints.
@@ -53,17 +61,17 @@ class EndpointAnalyzer:
             info["view_func"] = self.normalize_path(old_view_func)
             print(f"Normalized view_func: {old_view_func} -> {info['view_func']}")
             
-            old_template = info["template"]
-            if old_template != "none":
-                info["template"] = self.normalize_path(old_template)
-                print(f"Normalized template: {old_template} -> {info['template']}")
+            old_templates = info["templates"]
+            if old_templates:  # If there are templates (list is not empty)
+                info["templates"] = [self.normalize_path(t) for t in old_templates]
+                print(f"Normalized templates: {old_templates} -> {info['templates']}")
             else:
-                print(f"Template for {endpoint} is 'none', no normalization needed.")
+                print(f"Templates for {endpoint} is empty, no normalization needed.")
 
     def read_template_lines(self, template_spec):
         """Read the specified line range from the template file."""
-        if template_spec == "none":
-            print("Template is 'none' - skipping.")
+        if not template_spec or template_spec == "none":
+            print("Template is empty or 'none' - skipping.")
             return ""
         
         print(f"Processing template spec: {template_spec}")
@@ -175,36 +183,49 @@ class EndpointAnalyzer:
         return list(js_files)
 
     def process(self):
-        """Process the JSON, open templates, analyze imported JS files, and add api_functions."""
+        """Process the JSON, open all templates, analyze imported JS files, and add api_functions."""
         print("Starting to process all endpoints...")
         for endpoint, info in self.data.items():
             print(f"\nProcessing endpoint: {endpoint}")
-            template = info["template"]
-            if template != "none":
-                content = self.read_template_lines(template)
-                if content:
-                    # Find API calls in the template
-                    api_calls = self.find_api_calls(content)
-                    
-                    # Extract and analyze imported JS files
-                    js_files = self.extract_js_files(content)
-                    for js_file in js_files:
-                        try:
-                            with open(js_file, 'r', encoding='utf-8') as f:
-                                js_content = f.read()
-                            print(f"Analyzing JS file: {js_file}")
-                            js_api_calls = self.find_api_calls(js_content)
-                            api_calls.update(js_api_calls)
-                        except Exception as e:
-                            print(f"Error reading {js_file}: {e}")
-                    
-                    # Map all API calls (from template and JS files)
-                    info["api_functions"] = self.map_api_calls(api_calls)
-                else:
-                    info["api_functions"] = {}
-                    print("No content retrieved, setting api_functions to empty.")
+            templates = info["templates"]
+            all_api_calls = set()  # Collect API calls from all templates and their JS files
+            
+            if templates:  # If there are templates to process
+                for template in templates:
+                    content = self.read_template_lines(template)
+                    if content:
+                        # Find API calls in the template
+                        api_calls = self.find_api_calls(content)
+                        all_api_calls.update(api_calls)
+                        
+                        # Extract and analyze imported JS files
+                        js_files = self.extract_js_files(content)
+                        for js_file in js_files:
+                            try:
+                                with open(js_file, 'r', encoding='utf-8') as f:
+                                    js_content = f.read()
+                                print(f"Analyzing JS file: {js_file}")
+                                js_api_calls = self.find_api_calls(js_content)
+                                all_api_calls.update(js_api_calls)
+                            except Exception as e:
+                                print(f"Error reading {js_file}: {e}")
+                    else:
+                        print(f"No content retrieved from template: {template}")
             else:
-                info["api_functions"] = {}
-                print("No template, setting api_functions to empty.")
+                print("No templates, skipping template and JS analysis.")
+            
+            # Map all collected API calls to endpoints
+            info["api_functions"] = self.map_api_calls(all_api_calls)
+            if not all_api_calls:
+                print("No API calls found, setting api_functions to empty.")
+        
         print("\nFinished processing all endpoints.")
         return json.dumps(self.data)
+
+# Example usage:
+if __name__ == "__main__":
+    json_string = '''{"/static/<path:filename>": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/venv/lib/python3.12/site-packages/flask/app.py#278-278", "templates": []}, "/login": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#29-56", "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20", "/home/hamy/url_shortner/redroute/templates/login.html#1-33"]}, "/logout": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#58-62", "templates": []}, "/signup": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#66-100", "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20", "/home/hamy/url_shortner/redroute/templates/signup.html#1-38"]}, "/": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#111-133", "templates": ["/home/hamy/url_shortner/redroute/templates/index.html#1-46"]}, "/dashboard": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#136-142", "templates": ["/home/hamy/url_shortner/redroute/templates/dashboard.html#1-37"]}, "/about": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#145-147", "templates": ["/home/hamy/url_shortner/redroute/templates/about.html#1-65"]}, "/<short_url>": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#150-158", "templates": []}, "/qr_code/<short_url>": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#161-167", "templates": []}, "/analytics/<short_url>": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#170-177", "templates": ["/home/hamy/url_shortner/redroute/templates/analytics.html#1-27"]}, "/history": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#180-186", "templates": ["/home/hamy/url_shortner/redroute/templates/history.html#1-39"]}, "/delete/<int:id>": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#189-197", "templates": []}, "/edit/<int:id>": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#200-217", "templates": ["/home/hamy/url_shortner/redroute/templates/edit.html#1-16"]}, "/validate/<email>": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#220-237", "templates": ["/home/hamy/url_shortner/redroute/templates/validate.html#1-24"]}, "/resend/<email>": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#240-254", "templates": ["/home/hamy/url_shortner/redroute/templates/otp.html#1-20"]}, "/forgot_password": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#257-275", "templates": ["/home/hamy/url_shortner/redroute/templates/reset_mail.html#1-19", "/home/hamy/url_shortner/redroute/templates/forgot_password.html#1-23"]}, "/reset_password/<email>": {"method": ["GET", "HEAD", "OPTIONS", "POST"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#278-294", "templates": ["/home/hamy/url_shortner/redroute/templates/reset_password.html#1-30"]}, "/stats": {"method": ["GET", "HEAD", "OPTIONS"], "view_func": "/home/hamy/url_shortner/redroute/routes.py#298-304", "templates": ["/home/hamy/url_shortner/redroute/templates/stats.html#1-16"]}}'''
+    web_app_root = "/home/hamy/url_shortner"
+    analyzer = EndpointAnalyzer(json_string, web_app_root)
+    result = analyzer.process()
+    print(result)
