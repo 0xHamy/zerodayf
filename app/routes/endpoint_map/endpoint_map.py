@@ -218,8 +218,7 @@ async def run_semgrep_scan(scan_data, template_data, db: AsyncSession):
         uid=uid,
         scan_type="semgrep",
         scan_template=template_data,
-        scan_result=json.dumps(scan_results),
-        date=datetime.now()
+        scan_result=json.dumps(scan_results)
     )
     db.add(new_scan)
     await db.commit()
@@ -244,8 +243,7 @@ async def run_ai_scan(scan_data, template_data, db: AsyncSession):
         uid=uid,
         scan_type="ai",
         scan_template=populated_template,
-        scan_result=scan_result,
-        date=datetime.now()
+        scan_result=scan_result
     )
     db.add(new_scan)
     await db.commit()
