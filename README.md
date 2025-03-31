@@ -29,8 +29,7 @@ _**Pelase note Zerodayf is still in beta testing mode.**_
 
 
 ## 💡 Tutorial
-Please watch the following demo to see Zerodayf in action, in this video zerodayf will be battle-tested on real web apps:
-![Demo](./app/docs/zerodayf-demo.gif)
+Tutorial coming soon.
 
 
 ## ✨ Features
