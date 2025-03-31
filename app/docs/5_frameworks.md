@@ -104,7 +104,7 @@ result = {
 json_output = json.dumps(result)
 ```
 
-In zerodayf 0.5.0, I endpoint mapping by searching for the endpoint definition inside project's root directory recursively, opening every file and looking it up. It was tedious and more like reinventing the wheel rather than using existing solutions. 
+In zerodayf 0.5.0, I performed endpoint mapping by searching for the endpoint definition inside project's root directory recursively, opening every file and looking it up. It was tedious and more like reinventing the wheel rather than using existing solutions. 
 
 While this step helps in mapping any type of Flask app, the downside is that you need access to the debugger of the web app. If the app is poorly document, it might be difficult for you to setup the debugger. 
 

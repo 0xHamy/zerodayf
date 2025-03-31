@@ -1,8 +1,9 @@
-# Getting Started with Zerodayf
-To get started with using zerodayf, you need to follow a few easy steps. The entire process is guided and I can help you'd troubleshoot any errors you face. 
+# Getting Started with Zerodayf 
+To get started with using zerodayf, you need to follow a few easy steps. The entire process is guided and I can help you troubleshoot any errors you'd face. 
 
 ## API Configuration
 The initial step in setting up Zerodayf is configuring an API key and AI model for code analysis. These APIs are different than AI subscriptions, for example buying ChatGPT's premium doesn't give you access to its API, you have to pay at least $5.00 to buy API credits. 
+
 
 You can also use free LLM models from [HuggingFace](https://huggingface.co/). 
 
