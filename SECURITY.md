@@ -2,16 +2,10 @@
 
 ## Responsible Disclosure Process
 
-If you discover a security vulnerability within Zerodayf, please follow these responsible disclosure procedures:
-
-1. Do not create a public issue or disclose the vulnerability publicly
-2. Send a detailed report to [0x.hamy.1@gmail.com]
-3. Use the subject line "Security Vulnerability Report - Zerodayf"
-4. Include comprehensive vulnerability details and reproduction steps
-
+If you discover a security vulnerability within Zerodayf, please submit a report via GitHub.
 ## Security Architecture Context
 
-Zerodayf operates as a proxy tool designed specifically for security testing purposes. Given its nature as a proxy service, it is intended for local development and testing environments rather than production deployments. The application requires local file access to function effectively, which introduces inherent security considerations.
+Zerodayf operates as code-file analysis designed specifically for security testing purposes. Given its nature as a code viewer, it is intended for local development and testing environments rather than production deployments. The application requires local file access to function effectively, which introduces inherent security considerations.
 
 While certain security controls can be implemented to restrict access, the core functionality of the application necessitates some level of local system access. This architectural requirement creates an inherent trade-off between security and functionality that must be carefully considered during deployment.
 

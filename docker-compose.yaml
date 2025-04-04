@@ -5,28 +5,7 @@ services:
       - .:/app
       - /home:/home:ro
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5757/zerodayf
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: always
-
-  db:
-    image: postgres:13
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=zerodayf
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/zerodayf
     ports:
-      - "5757:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d zerodayf"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-volumes:
-  postgres_data:
+      - "1337:1337"
+    restart: always
