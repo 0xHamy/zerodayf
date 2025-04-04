@@ -7,5 +7,5 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/zerodayf
     ports:
-      - "1337:1337"
+      - "127.0.0.1:1337:1337"
     restart: always
