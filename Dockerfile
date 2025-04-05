@@ -9,6 +9,8 @@ RUN python3 -m pip install semgrep==1.109.0 --break-system-packages
 # Install system dependencies, including PostgreSQL server
 RUN apt-get update && apt-get install -y \
     postgresql \
+    pandoc \
+    texlive-full \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up PostgreSQL directories
