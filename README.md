@@ -1,3 +1,7 @@
+### This project is not maintained anymore.
+
+<br>
+
 ![Project Logo](./app/docs/zerodayf_0_6_0.png)
 [![Version](https://shields.io/badge/version-0.6.0--beta-orange)]()
 [![Build Status](https://shields.io/badge/build-passing-green)]()
